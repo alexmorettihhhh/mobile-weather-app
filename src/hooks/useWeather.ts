@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Location from 'expo-location';
 import { WeatherData } from '../types/weather';
 import { weatherService } from '../services/weatherApi';
-
-const CURRENT_CITY_KEY = 'current_city';
-const LOCATION_PERMISSION_KEY = 'location_permission_asked';
+import { CacheService } from '../services/cacheService';
+import { LocationService } from '../services/locationService';
 
 export const useWeather = () => {
   const [currentCity, setCurrentCity] = useState<string | null>(null);
@@ -14,77 +11,59 @@ export const useWeather = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    initializeLocation();
-  }, []);
+    const initialize = async () => {
+      try {
+        // Сначала проверяем кэш
+        const lastCity = await CacheService.getCachedWeatherData('last_city');
+        if (lastCity) {
+          setWeatherData(lastCity);
+          setCurrentCity(lastCity.location.name);
+          setLoading(false);
+          return;
+        }
 
-  useEffect(() => {
-    if (currentCity) {
-      fetchWeatherData();
-      AsyncStorage.setItem(CURRENT_CITY_KEY, currentCity);
-    }
-  }, [currentCity]);
+        // Если нет кэша, пробуем получить местоположение
+        const location = await LocationService.getCurrentLocation();
+        if (location) {
+          const cityName = await LocationService.getLocationName({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          });
 
-  const initializeLocation = async () => {
-    try {
-      // Проверяем, запрашивали ли мы уже разрешение на геолокацию
-      const permissionAsked = await AsyncStorage.getItem(LOCATION_PERMISSION_KEY);
-      
-      // Проверяем сохраненный город
-      const savedCity = await AsyncStorage.getItem(CURRENT_CITY_KEY);
-      
-      if (!permissionAsked) {
-        // Если разрешение еще не запрашивали, пробуем получить геолокацию
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        await AsyncStorage.setItem(LOCATION_PERMISSION_KEY, 'true');
-        
-        if (status === 'granted') {
-          const location = await Location.getCurrentPositionAsync({});
-          const { latitude, longitude } = location.coords;
-          
-          // Получаем название города по координатам
-          const cities = await weatherService.searchCities(`${latitude},${longitude}`);
-          if (cities.length > 0) {
-            setCurrentCity(cities[0]);
-            return;
+          if (cityName) {
+            const data = await weatherService.getWeather(cityName);
+            await CacheService.cacheWeatherData(cityName, data);
+            setWeatherData(data);
+            setCurrentCity(cityName);
           }
         }
-      }
-      
-      // Если есть сохраненный город, используем его
-      if (savedCity) {
-        setCurrentCity(savedCity);
-      } else {
-        // Если нет ни сохраненного города, ни геолокации, используем поиск
-        setCurrentCity(null);
+      } catch (error) {
+        console.error('Error initializing weather:', error);
+        setError(error instanceof Error ? error.message : 'Failed to initialize weather data');
+      } finally {
         setLoading(false);
       }
-    } catch (error) {
-      console.error('Error initializing location:', error);
-      // В случае ошибки просто показываем поиск города
-      setCurrentCity(null);
-      setLoading(false);
-    }
-  };
+    };
 
-  const loadSavedCity = async () => {
-    try {
-      const savedCity = await AsyncStorage.getItem(CURRENT_CITY_KEY);
-      if (savedCity) {
-        setCurrentCity(savedCity);
-      }
-    } catch (error) {
-      console.error('Error loading saved city:', error);
-    }
-  };
+    initialize();
+  }, []);
 
-  const fetchWeatherData = async () => {
-    if (!currentCity) return;
-    
+  const fetchWeatherData = async (city: string) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await weatherService.getWeather(currentCity);
-      console.log('Weather data:', data);
+
+      // Проверяем кэш перед запросом к API
+      const cachedData = await CacheService.getCachedWeatherData(city);
+      if (cachedData) {
+        setWeatherData(cachedData);
+        setLoading(false);
+        return;
+      }
+
+      // Если нет в кэше или кэш устарел, делаем запрос
+      const data = await weatherService.getWeather(city);
+      await CacheService.cacheWeatherData(city, data);
       setWeatherData(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load weather data');
@@ -94,8 +73,9 @@ export const useWeather = () => {
     }
   };
 
-  const setCity = (city: string) => {
+  const setCity = async (city: string) => {
     setCurrentCity(city);
+    await fetchWeatherData(city);
   };
 
   return {
@@ -104,6 +84,6 @@ export const useWeather = () => {
     weatherData,
     loading,
     error,
-    refreshWeather: fetchWeatherData,
+    refreshWeather: () => currentCity && fetchWeatherData(currentCity),
   };
 }; 

@@ -12,6 +12,7 @@ import { AstronomicalData } from '../components/AstronomicalData';
 import { CitySearch } from '../components/CitySearch';
 import { HourlyForecast } from '../components/HourlyForecast';
 import { ExtendedWeatherInfo } from '../components/ExtendedWeatherInfo';
+import { WeatherEducation } from '../components/WeatherEducation';
 import { useWeather } from '../hooks/useWeather';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -75,6 +76,7 @@ export const HomeScreen: React.FC = () => {
     { title: 'weather', data: [{ type: 'weather' }] },
     { title: 'hourly', data: [{ type: 'hourly' }] },
     { title: 'extended', data: [{ type: 'extended' }] },
+    { title: 'education', data: [{ type: 'education' }] },
     { title: 'recommendations', data: [{ type: 'recommendations' }] },
     { title: 'astronomical', data: [{ type: 'astronomical' }] },
   ] : [{ title: 'search', data: [{ type: 'search' }] }];
@@ -101,6 +103,8 @@ export const HomeScreen: React.FC = () => {
             }}
           />
         );
+      case 'education':
+        return weatherData && <WeatherEducation weatherData={weatherData} />;
       case 'recommendations':
         return weatherData && <WeatherRecommendations weatherData={weatherData} />;
       case 'astronomical':
