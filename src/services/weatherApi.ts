@@ -14,11 +14,13 @@ class WeatherService {
 
   async getWeather(query: string): Promise<WeatherData> {
     try {
+      console.log('Fetching weather for:', query);
       const response = await this.api.get<WeatherData>(API_ENDPOINTS.forecast, {
         params: {
           q: query,
         },
       });
+      console.log('API response:', response.data);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {

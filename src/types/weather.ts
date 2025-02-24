@@ -59,6 +59,7 @@ export interface Day {
   maxwind_kph: number;
   totalprecip_mm: number;
   avghumidity: number;
+  daily_chance_of_rain: number;
   condition: Condition;
   uv: number;
 }
@@ -76,6 +77,7 @@ export interface Hour {
   feelslike_c: number;
   windchill_c: number;
   chance_of_rain: number;
+  uv: number;
 }
 
 export interface ForecastDay {

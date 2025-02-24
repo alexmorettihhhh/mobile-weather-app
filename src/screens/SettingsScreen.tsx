@@ -1,13 +1,11 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Switch,
-  Platform,
-} from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Platform } from 'react-native';
+import Animated, { 
+  FadeIn,
+  Layout,
+  SlideInLeft,
+  SlideInRight
+} from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -18,107 +16,64 @@ export const SettingsScreen: React.FC = () => {
   const { language, setLanguage, translations } = useLanguage();
   const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
 
-  const handleLanguageChange = () => {
-    setLanguage(language === 'en' ? 'ru' : 'en');
-  };
-
   const renderSettingItem = (
-    icon: string,
     title: string,
     value: string,
     onPress: () => void,
-    isSwitch?: boolean,
-    switchValue?: boolean
+    icon: string,
+    index: number
   ) => (
-    <TouchableOpacity
-      style={[styles.settingItem, { backgroundColor: theme.colors.surface }]}
-      onPress={onPress}
+    <Animated.View
+      entering={SlideInRight.delay(index * 200)}
+      layout={Layout.springify()}
     >
-      <View style={styles.settingContent}>
-        <Icon name={icon} size={24} color={theme.colors.primary} />
-        <View style={styles.settingTexts}>
+      <TouchableOpacity
+        style={[styles.settingItem, { backgroundColor: theme.colors.surface }]}
+        onPress={onPress}
+      >
+        <View style={styles.settingLeft}>
+          <Icon name={icon} size={24} color={theme.colors.primary} style={styles.icon} />
           <Text style={[styles.settingTitle, { color: theme.colors.textPrimary }]}>
             {title}
           </Text>
+        </View>
+        <View style={styles.settingRight}>
           <Text style={[styles.settingValue, { color: theme.colors.textSecondary }]}>
             {value}
           </Text>
+          <Icon name="chevron-right" size={24} color={theme.colors.textSecondary} />
         </View>
-      </View>
-      {isSwitch ? (
-        <Switch
-          value={switchValue}
-          onValueChange={onPress}
-          trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
-          thumbColor={theme.colors.surface}
-        />
-      ) : (
-        <Icon
-          name="chevron-right"
-          size={24}
-          color={theme.colors.textSecondary}
-        />
-      )}
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 
   return (
-    <ScrollView
+    <Animated.View 
+      entering={FadeIn}
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      contentContainerStyle={styles.content}
     >
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.textSecondary }]}>
-          {translations.settings.appearance.toUpperCase()}
-        </Text>
-        
-        {renderSettingItem(
-          'theme-light-dark',
-          translations.settings.theme,
-          currentTheme === 'dark' ? translations.settings.dark : translations.settings.light,
-          toggleTheme,
-          true,
-          currentTheme === 'dark'
-        )}
-        
-        {renderSettingItem(
-          'translate',
-          translations.settings.language,
-          language === 'en' ? 'English' : 'Русский',
-          handleLanguageChange
-        )}
-      </View>
-
-      <Text style={[styles.sectionTitle, { color: theme.colors.textSecondary, marginTop: 24 }]}>
-        {translations.settings.about.toUpperCase()}
-      </Text>
-
       {renderSettingItem(
-        'information',
-        translations.settings.about,
-        'v1.0.0',
-        () => {}
+        translations.settings.theme,
+        currentTheme === 'dark' ? translations.settings.dark : translations.settings.light,
+        toggleTheme,
+        'theme-light-dark',
+        0
       )}
-    </ScrollView>
+      {renderSettingItem(
+        translations.settings.language,
+        language === 'ru' ? 'Русский' : 'English',
+        () => setLanguage(language === 'ru' ? 'en' : 'ru'),
+        'translate',
+        1
+      )}
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  content: {
     padding: 16,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 16,
-    marginLeft: 8,
-    textTransform: 'uppercase',
   },
   settingItem: {
     flexDirection: 'row',
@@ -126,23 +81,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     borderRadius: 12,
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  settingContent: {
+  settingLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
-  settingTexts: {
-    marginLeft: 16,
-    flex: 1,
+  settingRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  icon: {
+    marginRight: 12,
   },
   settingTitle: {
     fontSize: 16,
     fontWeight: '500',
   },
   settingValue: {
-    fontSize: 14,
-    marginTop: 2,
+    fontSize: 16,
+    marginRight: 8,
   },
 }); 

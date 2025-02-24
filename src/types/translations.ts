@@ -40,6 +40,13 @@ export type Translations = {
     cloudy: string;
     rain: string;
     snow: string;
+    uvIndex: string;
+    uvLow: string;
+    uvModerate: string;
+    uvHigh: string;
+    uvVeryHigh: string;
+    uvExtreme: string;
+    hourlyForecast: string;
   };
   locations: {
     current: string;
@@ -65,6 +72,33 @@ export type Translations = {
     waninggibbous: string;
     lastquarter: string;
     waningcrescent: string;
+  };
+  airQuality: {
+    title: string;
+    good: string;
+    moderate: string;
+    unhealthyForSensitive: string;
+    unhealthy: string;
+    veryUnhealthy: string;
+    hazardous: string;
+  };
+  directions: {
+    N: string;
+    NNE: string;
+    NE: string;
+    ENE: string;
+    E: string;
+    ESE: string;
+    SE: string;
+    SSE: string;
+    S: string;
+    SSW: string;
+    SW: string;
+    WSW: string;
+    W: string;
+    WNW: string;
+    NW: string;
+    NNW: string;
   };
   recommendations: {
     title: string;
