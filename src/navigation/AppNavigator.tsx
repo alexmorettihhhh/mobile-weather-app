@@ -2,65 +2,60 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { HomeScreen } from '../screens/HomeScreen';
-import { SettingsSection } from '../components/SettingsSection';
+import { FavoriteCitiesScreen } from '../screens/FavoriteCitiesScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext';
 import { darkTheme, lightTheme } from '../styles/theme';
 
-export type RootStackParamList = {
-  Weather: undefined;
-  Settings: undefined;
-};
-
-const Tab = createBottomTabNavigator<RootStackParamList>();
-
-interface TabIconProps {
-  color: string;
-  size: number;
-}
+const Tab = createBottomTabNavigator();
 
 export const AppNavigator = () => {
   const { theme: currentTheme } = useApp();
+  const { translations } = useLanguage();
   const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
 
   return (
     <Tab.Navigator
       screenOptions={{
-        headerStyle: {
-          backgroundColor: theme.colors.surface,
-          borderBottomWidth: 0,
-        },
-        headerTintColor: theme.colors.textPrimary,
-        headerTitleStyle: {
-          fontSize: theme.typography.h2.fontSize,
-          fontWeight: '600',
-        },
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
-          borderTopWidth: 0,
-          elevation: 0,
-          height: 60,
-          paddingBottom: 8,
+          borderTopColor: theme.colors.border,
         },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textSecondary,
+        headerStyle: {
+          backgroundColor: theme.colors.surface,
+        },
+        headerTintColor: theme.colors.textPrimary,
       }}
     >
       <Tab.Screen
-        name="Weather"
+        name="Home"
         component={HomeScreen}
         options={{
           title: 'Погода',
-          tabBarIcon: ({ color, size }: TabIconProps) => (
+          tabBarIcon: ({ color, size }) => (
             <Icon name="weather-partly-cloudy" size={size} color={color} />
           ),
         }}
       />
       <Tab.Screen
-        name="Settings"
-        component={SettingsSection}
+        name="Favorites"
+        component={FavoriteCitiesScreen}
         options={{
-          title: 'Настройки',
-          tabBarIcon: ({ color, size }: TabIconProps) => (
+          title: translations.locations.favorites,
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="star" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          title: translations.common.settings,
+          tabBarIcon: ({ color, size }) => (
             <Icon name="cog" size={size} color={color} />
           ),
         }}

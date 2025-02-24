@@ -49,6 +49,24 @@ class WeatherService {
       throw error;
     }
   }
+
+  async searchCities(query: string): Promise<string[]> {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/search.json?key=${API_KEY}&q=${encodeURIComponent(query)}`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch cities');
+      }
+
+      const data = await response.json();
+      return data.map((item: any) => item.name);
+    } catch (error) {
+      console.error('Error searching cities:', error);
+      throw error;
+    }
+  }
 }
 
 export const weatherService = new WeatherService(); 

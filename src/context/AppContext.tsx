@@ -1,22 +1,59 @@
-import React, { createContext, useContext, ReactNode } from 'react';
-import { useSettings } from '../hooks/useSettings';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+type Theme = 'light' | 'dark';
+type Language = 'ru' | 'en';
 
 interface AppContextType {
-  theme: 'light' | 'dark';
-  language: 'ru' | 'en';
-  followSystem: boolean;
-  setTheme: (theme: 'light' | 'dark') => void;
-  setLanguage: (language: 'ru' | 'en') => void;
-  setFollowSystem: (followSystem: boolean) => void;
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const settings = useSettings();
+const THEME_STORAGE_KEY = 'app_theme';
+
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setThemeState] = useState<Theme>('dark');
+
+  useEffect(() => {
+    loadSavedTheme();
+  }, []);
+
+  const loadSavedTheme = async () => {
+    try {
+      const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+      if (savedTheme) {
+        setThemeState(savedTheme as Theme);
+      }
+    } catch (error) {
+      console.error('Error loading theme:', error);
+    }
+  };
+
+  const handleSetTheme = async (newTheme: Theme) => {
+    setThemeState(newTheme);
+    try {
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    } catch (error) {
+      console.error('Error saving theme:', error);
+    }
+  };
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    handleSetTheme(newTheme);
+  };
+
+  const contextValue: AppContextType = {
+    theme,
+    setTheme: handleSetTheme,
+    toggleTheme,
+  };
 
   return (
-    <AppContext.Provider value={settings}>
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );

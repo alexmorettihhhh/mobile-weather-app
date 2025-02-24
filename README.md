@@ -5,7 +5,7 @@
 ## Технологический Стек
 
 ### Основа
-- React Native
+- React Native +++
 - TypeScript
 - Expo
 
