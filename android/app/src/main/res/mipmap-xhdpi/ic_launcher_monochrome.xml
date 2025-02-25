@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Луна -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M40,30 C30,30 22,38 22,48 C22,58 30,66 40,66 C42,66 44,65.5 46,64.5 C43,60 41,54.5 41,48.5 C41,42.5 43,37 46,32.5 C44,31.5 42,30 40,30 Z" />
+    
+    <!-- Облако -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M70,40 C60,40 52,48 52,58 C52,68 60,76 70,76 C80,76 88,68 88,58 C88,48 80,40 70,40 Z M70,44 C78,44 84,50 84,58 C84,66 78,72 70,72 C62,72 56,66 56,58 C56,50 62,44 70,44 Z" />
+</vector> 
