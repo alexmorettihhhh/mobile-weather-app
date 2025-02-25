@@ -17,6 +17,8 @@ import { WeatherAlerts } from '../components/WeatherAlerts';
 import { WeatherHistory } from '../components/WeatherHistory';
 import { ActivityRecommendations } from '../components/ActivityRecommendations';
 import { ShareWeather } from '../components/ShareWeather';
+import { WeatherBackground } from '../components/WeatherBackground';
+import { WeatherTimelapse } from '../components/WeatherTimelapse';
 import { useWeather } from '../hooks/useWeather';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -137,6 +139,10 @@ export const HomeScreen: React.FC = () => {
         data: hourlyData.length > 0 ? [{ type: 'hourly', hourlyData }] : [],
       },
       {
+        title: 'timelapse',
+        data: [{ type: 'timelapse' }],
+      },
+      {
         title: 'extended',
         data: [{ type: 'extended' }],
       },
@@ -221,6 +227,10 @@ export const HomeScreen: React.FC = () => {
         // Типизируем item для hourly
         return isDataValid && weatherData && (item as any).hourlyData ? 
           <HourlyForecast hourlyData={(item as any).hourlyData} /> : null;
+      case 'timelapse':
+        // Новая секция для WeatherTimelapse
+        return isDataValid && weatherData ? 
+          <WeatherTimelapse weatherData={weatherData} /> : null;
       case 'extended':
         // Добавляем проверку на наличие данных прогноза
         return (isDataValid && weatherData) ? 
@@ -250,6 +260,11 @@ export const HomeScreen: React.FC = () => {
   
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      {/* Анимированный фон, отображается только если у нас есть данные о погоде */}
+      {isDataValid && weatherData && (
+        <WeatherBackground weatherData={weatherData} opacity={0.5} />
+      )}
+      
       <SectionList
         style={styles.listContainer}
         sections={sections}

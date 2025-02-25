@@ -74,57 +74,29 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
   });
 
   const getWeatherIcon = (code: number): string => {
-    const iconMap: { [key: number]: string } = {
-      1000: 'weather-sunny',
-      1003: 'weather-partly-cloudy',
-      1006: 'weather-cloudy',
-      1009: 'weather-cloudy',
-      1030: 'weather-fog',
-      1063: 'weather-partly-rainy',
-      1066: 'weather-snowy',
-      1069: 'weather-snowy-rainy',
-      1072: 'weather-hail',
-      1087: 'weather-lightning',
-      1114: 'weather-snowy',
-      1117: 'weather-snowy-heavy',
-      1135: 'weather-fog',
-      1147: 'weather-fog',
-      1150: 'weather-rainy',
-      1153: 'weather-rainy',
-      1168: 'weather-snowy-rainy',
-      1171: 'weather-snowy-rainy',
-      1180: 'weather-rainy',
-      1183: 'weather-rainy',
-      1186: 'weather-rainy',
-      1189: 'weather-rainy',
-      1192: 'weather-pouring',
-      1195: 'weather-pouring',
-      1198: 'weather-snowy-rainy',
-      1201: 'weather-snowy-rainy',
-      1204: 'weather-snowy',
-      1207: 'weather-snowy-heavy',
-      1210: 'weather-snowy',
-      1213: 'weather-snowy',
-      1216: 'weather-snowy',
-      1219: 'weather-snowy',
-      1222: 'weather-snowy-heavy',
-      1225: 'weather-snowy-heavy',
-      1237: 'weather-hail',
-      1240: 'weather-rainy',
-      1243: 'weather-pouring',
-      1246: 'weather-pouring',
-      1249: 'weather-snowy-rainy',
-      1252: 'weather-snowy-rainy',
-      1255: 'weather-snowy',
-      1258: 'weather-snowy-heavy',
-      1261: 'weather-hail',
-      1264: 'weather-hail',
-      1273: 'weather-lightning',
-      1276: 'weather-lightning',
-      1279: 'weather-lightning-rainy',
-      1282: 'weather-lightning-rainy',
-    };
-    return iconMap[code] || 'weather-cloudy';
+    // Код для определения иконки погоды на основе кода условия
+    switch (true) {
+      case code === 1000: // Солнечно
+        return 'weather-sunny';
+      case code === 1003: // Частичная облачность
+        return 'weather-partly-cloudy';
+      case [1006, 1009].includes(code): // Облачно
+        return 'weather-cloudy';
+      case [1030, 1135, 1147].includes(code): // Туман
+        return 'weather-fog';
+      case [1063, 1150, 1153, 1180, 1183, 1186, 1189, 1192, 1195, 1240, 1243, 1246].includes(code): // Дождь
+        return 'weather-rainy';
+      case [1066, 1114, 1117, 1210, 1213, 1216, 1219, 1222, 1225, 1255, 1258].includes(code): // Снег
+        return 'weather-snowy';
+      case [1069, 1072, 1168, 1171, 1198, 1201, 1204, 1207, 1249, 1252].includes(code): // Град
+        return 'weather-hail';
+      case [1087, 1273, 1276, 1279, 1282].includes(code): // Гроза
+        return 'weather-lightning';
+      case [1237, 1261, 1264].includes(code): // Ледяной дождь
+        return 'weather-snowy-rainy';
+      default:
+        return 'weather-cloudy';
+    }
   };
 
   // Определяем градиент в зависимости от погоды
@@ -175,18 +147,22 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
       >
         <Animated.Text 
           entering={SlideInRight.duration(500)}
-          style={styles.cityName}
+          style={[styles.cityName, { color: theme.colors.textPrimary }]}
         >
           {city}
         </Animated.Text>
         
         <View style={styles.mainInfo}>
-          <AnimatedIcon
-            style={[iconAnimatedStyle, styles.weatherIcon]}
-            name={getWeatherIcon(weatherData.current.condition.code)}
-            size={80}
-            color="#FFFFFF"
-          />
+          <View style={styles.iconBackgroundCircle}>
+            <View style={styles.iconGlow}>
+              <AnimatedIcon
+                style={[iconAnimatedStyle, styles.weatherIcon]}
+                name={getWeatherIcon(weatherData.current.condition.code)}
+                size={100}
+                color="#FFFFFF"
+              />
+            </View>
+          </View>
           <View style={styles.temperatureContainer}>
             <Animated.Text 
               style={[styles.temperature, temperatureAnimatedStyle]}
@@ -195,7 +171,7 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
             </Animated.Text>
             <Animated.Text 
               entering={FadeIn.delay(300).duration(300)}
-              style={styles.condition}
+              style={[styles.condition, { color: theme.colors.textPrimary }]}
             >
               {weatherData.current.condition.text}
             </Animated.Text>
@@ -211,10 +187,10 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
             style={[styles.detailItem, styles.detailItemCard]}
           >
             <Icon name="thermometer" size={24} color={theme.colors.primary} />
-            <Text style={styles.detailLabel}>
+            <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
               {translations.weather.feelsLike}
             </Text>
-            <Text style={styles.detailValue}>
+            <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
               {Math.round(weatherData.current.feelslike_c)}°C
             </Text>
           </Animated.View>
@@ -224,10 +200,10 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
             style={[styles.detailItem, styles.detailItemCard]}
           >
             <Icon name="water-percent" size={24} color={theme.colors.primary} />
-            <Text style={styles.detailLabel}>
+            <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
               {translations.weather.humidity}
             </Text>
-            <Text style={styles.detailValue}>
+            <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
               {weatherData.current.humidity}%
             </Text>
           </Animated.View>
@@ -237,10 +213,10 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
             style={[styles.detailItem, styles.detailItemCard]}
           >
             <Icon name="weather-windy" size={24} color={theme.colors.primary} />
-            <Text style={styles.detailLabel}>
+            <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
               {translations.weather.wind}
             </Text>
-            <Text style={styles.detailValue}>
+            <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
               {Math.round(weatherData.current.wind_kph)} км/ч
             </Text>
           </Animated.View>
@@ -249,11 +225,11 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
             entering={ZoomIn.delay(800).duration(300)}
             style={[styles.detailItem, styles.detailItemCard]}
           >
-            <Icon name="speedometer" size={24} color={theme.colors.primary} />
-            <Text style={styles.detailLabel}>
+            <Icon name="gauge" size={24} color={theme.colors.primary} />
+            <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
               {translations.weather.pressure}
             </Text>
-            <Text style={styles.detailValue}>
+            <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
               {weatherData.current.pressure_mb} мб
             </Text>
           </Animated.View>
@@ -297,10 +273,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginBottom: 30,
   },
+  iconBackgroundCircle: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 60,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 10,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+  },
   weatherIcon: {
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 3 },
-    textShadowRadius: 5
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+    overflow: 'visible',
   },
   temperatureContainer: {
     alignItems: 'center',
@@ -355,5 +344,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     marginTop: 2,
+  },
+  iconGlow: {
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+    borderRadius: 50,
   },
 }); 
