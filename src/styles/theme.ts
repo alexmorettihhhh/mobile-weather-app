@@ -1,208 +1,169 @@
-interface ThemeColors {
+export interface ThemeColors {
   primary: string;
   secondary: string;
   background: string;
-  surface: string;
-  error: string;
-  onPrimary: string;
-  onSecondary: string;
-  onBackground: string;
-  onSurface: string;
-  onError: string;
+  backgroundSecondary: string;
   cardBackground: string;
+  surface: string;
   textPrimary: string;
   textSecondary: string;
+  border: string;
+  divider: string;
+  error: string;
+  success: string;
+  warning: string;
+  info: string;
   chart: {
+    temperature: string;
+    humidity: string;
+    wind: string;
+    precipitation: string;
     line: string;
     grid: string;
     text: string;
     point: string;
   };
-  difficulty: {
-    easy: string;
-    medium: string;
-    hard: string;
-  };
-  border: string;
-  success: string;
-  warning: string;
-  info: string;
 }
 
-interface Theme {
+export interface Theme {
   colors: ThemeColors;
   spacing: {
     xs: number;
-    sm: number;
-    md: number;
-    lg: number;
+    s: number;
+    m: number;
+    l: number;
     xl: number;
-  };
-  typography: {
-    h1: {
-      fontSize: number;
-      fontWeight: string;
-    };
-    h2: {
-      fontSize: number;
-      fontWeight: string;
-    };
-    h3: {
-      fontSize: number;
-      fontWeight: string;
-    };
-    body1: {
-      fontSize: number;
-    };
-    body2: {
-      fontSize: number;
-    };
-    caption: {
-      fontSize: number;
-    };
   };
   borderRadius: {
-    sm: number;
-    md: number;
-    lg: number;
-    xl: number;
+    small: number;
+    medium: number;
+    large: number;
+  };
+  typography: {
+    fontSize: {
+      small: number;
+      regular: number;
+      medium: number;
+      large: number;
+      extraLarge: number;
+    };
+    fontWeight: {
+      light: string;
+      regular: string;
+      semibold: string;
+      bold: string;
+    };
   };
 }
 
 export const darkTheme: Theme = {
   colors: {
-    primary: '#7C4DFF',
-    secondary: '#00E5FF',
+    primary: '#38B3EF',
+    secondary: '#FFB74D',
     background: '#000000',
-    surface: '#121212',
-    error: '#FF5252',
-    onPrimary: '#FFFFFF',
-    onSecondary: '#000000',
-    onBackground: '#FFFFFF',
-    onSurface: '#FFFFFF',
-    onError: '#000000',
-    cardBackground: '#1E1E1E',
+    backgroundSecondary: '#0A0A0A',
+    cardBackground: '#121212',
+    surface: '#181818',
     textPrimary: '#FFFFFF',
-    textSecondary: '#B3B3B3',
-    chart: {
-      line: '#7C4DFF',
-      grid: '#333333',
-      text: '#B3B3B3',
-      point: '#00E5FF',
-    },
-    difficulty: {
-      easy: '#4CAF50',
-      medium: '#FFC107',
-      hard: '#FF5252',
-    },
-    border: '#2C2C2C',
+    textSecondary: '#B0C4DE',
+    border: '#2A2A2A',
+    divider: '#2A2A2A',
+    error: '#FF5252',
     success: '#4CAF50',
     warning: '#FFC107',
-    info: '#00E5FF',
+    info: '#64B5F6',
+    chart: {
+      temperature: '#FF6B4D',
+      humidity: '#4DB6FF',
+      wind: '#80DEEA',
+      precipitation: '#81D4FA',
+      line: '#FFFFFF',
+      grid: '#2A2A2A',
+      text: '#B0C4DE',
+      point: '#FFFFFF'
+    }
   },
   spacing: {
     xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
+    s: 8,
+    m: 16,
+    l: 24,
     xl: 32,
   },
-  typography: {
-    h1: {
-      fontSize: 32,
-      fontWeight: 'bold',
-    },
-    h2: {
-      fontSize: 24,
-      fontWeight: 'bold',
-    },
-    h3: {
-      fontSize: 20,
-      fontWeight: '600',
-    },
-    body1: {
-      fontSize: 16,
-    },
-    body2: {
-      fontSize: 14,
-    },
-    caption: {
-      fontSize: 12,
-    },
-  },
   borderRadius: {
-    sm: 8,
-    md: 12,
-    lg: 16,
-    xl: 24,
+    small: 8,
+    medium: 16,
+    large: 24,
+  },
+  typography: {
+    fontSize: {
+      small: 12,
+      regular: 14,
+      medium: 16,
+      large: 20,
+      extraLarge: 28,
+    },
+    fontWeight: {
+      light: '300',
+      regular: '400',
+      semibold: '600',
+      bold: '700',
+    },
   },
 };
 
 export const lightTheme: Theme = {
   colors: {
-    primary: '#7C4DFF',
-    secondary: '#00B8D4',
-    background: '#FFFFFF',
-    surface: '#F5F5F5',
-    error: '#FF5252',
-    onPrimary: '#FFFFFF',
-    onSecondary: '#000000',
-    onBackground: '#000000',
-    onSurface: '#000000',
-    onError: '#FFFFFF',
+    primary: '#1A97E1',
+    secondary: '#FF9800',
+    background: '#F4F9FD',
+    backgroundSecondary: '#FFFFFF',
     cardBackground: '#FFFFFF',
-    textPrimary: '#000000',
-    textSecondary: '#666666',
-    chart: {
-      line: '#7C4DFF',
-      grid: '#E0E0E0',
-      text: '#666666',
-      point: '#00B8D4',
-    },
-    difficulty: {
-      easy: '#4CAF50',
-      medium: '#FFC107',
-      hard: '#FF5252',
-    },
-    border: '#E0E0E0',
+    surface: '#FFFFFF',
+    textPrimary: '#10394A',
+    textSecondary: '#6D8A99',
+    border: '#E1ECF5',
+    divider: '#EDF3F8',
+    error: '#F44336',
     success: '#4CAF50',
-    warning: '#FFC107',
-    info: '#00B8D4',
+    warning: '#FF9800',
+    info: '#2196F3',
+    chart: {
+      temperature: '#F66F59',
+      humidity: '#40A3F5',
+      wind: '#5CCDDD',
+      precipitation: '#64B5F6',
+      line: '#10394A',
+      grid: '#E1ECF5',
+      text: '#6D8A99',
+      point: '#10394A'
+    }
   },
   spacing: {
     xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
+    s: 8,
+    m: 16,
+    l: 24,
     xl: 32,
   },
-  typography: {
-    h1: {
-      fontSize: 32,
-      fontWeight: 'bold',
-    },
-    h2: {
-      fontSize: 24,
-      fontWeight: 'bold',
-    },
-    h3: {
-      fontSize: 20,
-      fontWeight: '600',
-    },
-    body1: {
-      fontSize: 16,
-    },
-    body2: {
-      fontSize: 14,
-    },
-    caption: {
-      fontSize: 12,
-    },
-  },
   borderRadius: {
-    sm: 8,
-    md: 12,
-    lg: 16,
-    xl: 24,
+    small: 8,
+    medium: 16,
+    large: 24,
+  },
+  typography: {
+    fontSize: {
+      small: 12,
+      regular: 14,
+      medium: 16,
+      large: 20,
+      extraLarge: 28,
+    },
+    fontWeight: {
+      light: '300',
+      regular: '400',
+      semibold: '600',
+      bold: '700',
+    },
   },
 }; 

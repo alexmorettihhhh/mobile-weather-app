@@ -119,7 +119,15 @@ export const WeatherEducation: React.FC<WeatherEducationProps> = ({ weatherData 
               { backgroundColor: theme.colors.cardBackground },
             ]}
           >
-            <Animated.View style={[styles.iconContainer, { opacity: glowOpacity }]}>
+            <Animated.View 
+              style={[
+                styles.iconContainer, 
+                { 
+                  opacity: glowOpacity,
+                  backgroundColor: currentTheme === 'dark' ? 'rgba(56, 179, 239, 0.1)' : 'rgba(124, 77, 255, 0.1)'
+                }
+              ]}
+            >
               <Icon name={currentFact.icon} size={48} color={theme.colors.primary} />
             </Animated.View>
             <Text style={[styles.cardTitle, { color: theme.colors.textPrimary }]}>
@@ -128,7 +136,12 @@ export const WeatherEducation: React.FC<WeatherEducationProps> = ({ weatherData 
             <Text style={[styles.cardDescription, { color: theme.colors.textSecondary }]}>
               {currentFact.description}
             </Text>
-            <View style={styles.flipHint}>
+            <View 
+              style={[
+                styles.flipHint,
+                { backgroundColor: currentTheme === 'dark' ? 'rgba(56, 179, 239, 0.1)' : 'rgba(124, 77, 255, 0.1)' }
+              ]}
+            >
               <Icon name="rotate-3d" size={20} color={theme.colors.textSecondary} />
               <Text style={[styles.flipText, { color: theme.colors.textSecondary }]}>
                 Нажмите, чтобы узнать больше
@@ -144,7 +157,15 @@ export const WeatherEducation: React.FC<WeatherEducationProps> = ({ weatherData 
               { backgroundColor: theme.colors.cardBackground },
             ]}
           >
-            <Animated.View style={[styles.iconContainer, { opacity: glowOpacity }]}>
+            <Animated.View 
+              style={[
+                styles.iconContainer, 
+                { 
+                  opacity: glowOpacity,
+                  backgroundColor: currentTheme === 'dark' ? 'rgba(56, 179, 239, 0.1)' : 'rgba(124, 77, 255, 0.1)'
+                }
+              ]}
+            >
               <Icon name={currentExplanation.icon} size={48} color={theme.colors.primary} />
             </Animated.View>
             <Text style={[styles.cardTitle, { color: theme.colors.textPrimary }]}>
@@ -153,7 +174,12 @@ export const WeatherEducation: React.FC<WeatherEducationProps> = ({ weatherData 
             <Text style={[styles.cardDescription, { color: theme.colors.textSecondary }]}>
               {currentExplanation.explanation}
             </Text>
-            <View style={styles.flipHint}>
+            <View 
+              style={[
+                styles.flipHint,
+                { backgroundColor: currentTheme === 'dark' ? 'rgba(56, 179, 239, 0.1)' : 'rgba(124, 77, 255, 0.1)' }
+              ]}
+            >
               <Icon name="rotate-3d" size={20} color={theme.colors.textSecondary} />
               <Text style={[styles.flipText, { color: theme.colors.textSecondary }]}>
                 Нажмите, чтобы вернуться
@@ -208,7 +234,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(124, 77, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
@@ -229,7 +254,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(124, 77, 255, 0.1)',
     padding: 8,
     borderRadius: 20,
     marginTop: 12,

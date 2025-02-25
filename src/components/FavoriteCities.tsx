@@ -33,12 +33,31 @@ export const FavoriteCities: React.FC<FavoriteCitiesProps> = ({
 
   const [favoriteCities, setFavoriteCities] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [searchResults, setSearchResults] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadFavoriteCities();
   }, []);
+
+  // Debounce логика для поиска
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchText);
+    }, 500); // 500мс задержка
+
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  // Обработка debounced запроса
+  useEffect(() => {
+    if (debouncedQuery.length >= 2) {
+      performSearch(debouncedQuery);
+    } else if (debouncedQuery === '') {
+      setSearchResults([]);
+    }
+  }, [debouncedQuery]);
 
   const loadFavoriteCities = async () => {
     try {
@@ -70,8 +89,12 @@ export const FavoriteCities: React.FC<FavoriteCitiesProps> = ({
     saveFavoriteCities(favoriteCities.filter(c => c !== city));
   };
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = (query: string) => {
     setSearchText(query);
+    // Debounce реализован через useEffect
+  };
+
+  const performSearch = async (query: string) => {
     if (query.length < 2) {
       setSearchResults([]);
       return;
@@ -79,10 +102,19 @@ export const FavoriteCities: React.FC<FavoriteCitiesProps> = ({
 
     try {
       setLoading(true);
+      console.log(`[FavoriteCities] Выполняю поиск: ${query}`);
       const cities = await weatherService.searchCities(query);
-      setSearchResults(cities);
+      console.log(`[FavoriteCities] Найдено городов: ${cities?.length || 0}`);
+      
+      if (Array.isArray(cities) && cities.length > 0) {
+        console.log(`[FavoriteCities] Список городов:`, cities);
+        setSearchResults(cities);
+      } else {
+        console.log('[FavoriteCities] Города не найдены');
+        setSearchResults([]);
+      }
     } catch (error) {
-      console.error('Error searching cities:', error);
+      console.error('[FavoriteCities] Ошибка при поиске городов:', error);
       setSearchResults([]);
     } finally {
       setLoading(false);
@@ -110,6 +142,27 @@ export const FavoriteCities: React.FC<FavoriteCitiesProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCitySelect = (city: string) => {
+    console.log(`[FavoriteCities] Выбран город: ${city}`);
+    
+    // Проверка валидности названия города
+    if (!city || city.trim() === '') {
+      console.warn('[FavoriteCities] Пустое название города, игнорирую выбор');
+      return;
+    }
+    
+    // Проверка на изменение города
+    if (city === currentCity) {
+      console.log(`[FavoriteCities] Город не изменился: ${city}`);
+      return;
+    }
+    
+    console.log(`[FavoriteCities] Устанавливаю новый город: ${city}`);
+    onCitySelect(city);
+    setSearchText('');
+    setSearchResults([]);
   };
 
   const sections = [
@@ -158,7 +211,7 @@ export const FavoriteCities: React.FC<FavoriteCitiesProps> = ({
     return (
       <TouchableOpacity
         style={[styles.cityItem, { backgroundColor: theme.colors.cardBackground }]}
-        onPress={() => onCitySelect(item)}
+        onPress={() => handleCitySelect(item)}
       >
         <View style={styles.cityInfo}>
           <Icon

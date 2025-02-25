@@ -42,6 +42,7 @@ export class CacheService {
 
   static async clearCacheForCity(city: string): Promise<void> {
     try {
+      console.log(`[CacheService] Clearing cache for city: ${city}`);
       await AsyncStorage.multiRemove([
         CACHE_KEYS.WEATHER_DATA + city,
         CACHE_KEYS.LAST_UPDATE + city,
@@ -53,13 +54,27 @@ export class CacheService {
 
   static async clearAllCache(): Promise<void> {
     try {
+      console.log('[CacheService] Clearing all cache');
       const keys = await AsyncStorage.getAllKeys();
       const cacheKeys = keys.filter(key => 
         Object.values(CACHE_KEYS).some(cacheKey => key.startsWith(cacheKey))
       );
+      
+      console.log(`[CacheService] Found ${cacheKeys.length} cache keys to remove`);
       await AsyncStorage.multiRemove(cacheKeys);
+      console.log('[CacheService] Cache cleared successfully');
     } catch (error) {
       console.error('Error clearing all cache:', error);
+    }
+  }
+  
+  // Принудительно очищает кэш для указанного города, игнорируя срок его истечения
+  static async forceRefreshCacheForCity(city: string): Promise<void> {
+    try {
+      console.log(`[CacheService] Force refreshing cache for city: ${city}`);
+      await this.clearCacheForCity(city);
+    } catch (error) {
+      console.error(`[CacheService] Error force refreshing cache for ${city}:`, error);
     }
   }
 } 

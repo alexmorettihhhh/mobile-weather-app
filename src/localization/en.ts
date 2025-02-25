@@ -9,6 +9,7 @@ export const en = {
     delete: 'Delete',
     edit: 'Edit',
     search: 'Search',
+    ok: 'OK',
   },
   settings: {
     title: 'Settings',
@@ -109,6 +110,26 @@ export const en = {
       rain: "Don't forget an umbrella",
       cold: 'Dress warmly',
     },
+  },
+  share: {
+    title: 'Share Weather',
+    current: 'Current Weather',
+    forecast: 'Weekly Forecast',
+    note: 'Share weather with friends and family',
+    success: 'Weather shared successfully',
+    error: 'Error sharing weather',
+  },
+  activities: {
+    title: 'Recommended Activities',
+    subtitle: 'Based on current weather',
+    notRecommended: 'Not Recommended',
+  },
+  history: {
+    title: 'Weather History',
+    temperature: 'Temperature History',
+    humidity: 'Humidity History',
+    wind: 'Wind History',
+    noData: 'No history data available',
   },
   errors: {
     locationError: 'Location detection error',

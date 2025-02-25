@@ -9,6 +9,7 @@ export type Translations = {
     search: string;
     settings: string;
     error: string;
+    ok: string;
   };
   settings: {
     title: string;
@@ -114,6 +115,26 @@ export type Translations = {
       rain: string;
       cold: string;
     };
+  };
+  share: {
+    title: string;
+    current: string;
+    forecast: string;
+    note: string;
+    success: string;
+    error: string;
+  };
+  activities: {
+    title: string;
+    subtitle: string;
+    notRecommended: string;
+  };
+  history: {
+    title: string;
+    temperature: string;
+    humidity: string;
+    wind: string;
+    noData: string;
   };
   errors: {
     apiError: string;

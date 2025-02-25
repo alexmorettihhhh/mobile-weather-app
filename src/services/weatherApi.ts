@@ -1,6 +1,7 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { WeatherData } from '../types/weather';
 import { API_KEY, API_BASE_URL, API_ENDPOINTS } from '../config/constants';
+import { ENV } from '../config/env';
 
 class WeatherService {
   private api = axios.create({
@@ -13,24 +14,52 @@ class WeatherService {
   });
 
   async getWeather(query: string): Promise<WeatherData> {
+    const apiKey = ENV.WEATHER_API_KEY || API_KEY;
+    console.log(`[WeatherAPI] Fetching data for query: ${query}`);
+    console.log(`[WeatherAPI] Using API key: ${apiKey.substring(0, 4)}...`);
+    console.log(`[WeatherAPI] Base URL: ${API_BASE_URL}`);
+    
     try {
-      console.log('Fetching weather for:', query);
-      const response = await this.api.get<WeatherData>(API_ENDPOINTS.forecast, {
+      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.forecast}`, {
         params: {
+          key: apiKey,
           q: query,
+          aqi: 'yes',
+          days: 7
         },
       });
-      console.log('API response:', response.data);
-      return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('API Error:', error.response?.data);
-        if (error.response?.status === 403) {
-          throw new Error('API key error. Please check your configuration.');
-        }
-        throw new Error(error.response?.data?.error?.message || 'Failed to fetch weather data');
+
+      console.log(`[WeatherAPI] Response status: ${response.status}`);
+      console.log(`[WeatherAPI] Location: ${response.data.location.name}`);
+      
+      if (!response.data.forecast || !response.data.forecast.forecastday) {
+        console.error('[WeatherAPI] Error: Forecast data missing in API response');
+        throw new Error('Данные прогноза отсутствуют в ответе API');
       }
-      throw error;
+      
+      console.log(`[WeatherAPI] Received forecast for ${response.data.forecast.forecastday.length} days`);
+      
+      return this.transformApiResponse(response.data);
+    } catch (error) {
+      console.error('[WeatherAPI] Error fetching weather data:', error);
+      
+      const axiosError = error as AxiosError;
+      if (axiosError.response) {
+        console.error(`[WeatherAPI] Status: ${axiosError.response.status}`);
+        console.error('[WeatherAPI] Response data:', axiosError.response.data);
+        
+        // Проверяем специфические коды ошибок
+        if (axiosError.response.status === 401 || axiosError.response.status === 403) {
+          throw new Error('Недействительный API ключ. Пожалуйста, проверьте настройки приложения.');
+        }
+      }
+      
+      if (axiosError.request) {
+        console.error('[WeatherAPI] No response received');
+        throw new Error('Не удалось получить ответ от сервера погоды. Проверьте подключение к интернету.');
+      }
+      
+      throw new Error(`Ошибка при получении данных о погоде: ${(error as Error).message}`);
     }
   }
 
@@ -68,6 +97,11 @@ class WeatherService {
       console.error('Error searching cities:', error);
       throw error;
     }
+  }
+
+  private transformApiResponse(data: any): WeatherData {
+    // Трансформируем данные из API в формат WeatherData
+    return data;
   }
 }
 
