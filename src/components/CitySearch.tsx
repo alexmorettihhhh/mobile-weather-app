@@ -296,13 +296,12 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     padding: 16,
-    zIndex: 100,
-    elevation: 100,
+    zIndex: 10,
+    position: 'relative',
   },
   searchContainerWrapper: {
     width: '100%',
-    zIndex: 100,
-    elevation: 100,
+    zIndex: 10,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -343,7 +342,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 72,
     top: 28,
-    zIndex: 101,
+    zIndex: 11,
   },
   errorText: {
     marginTop: 8,
@@ -355,8 +354,7 @@ const styles = StyleSheet.create({
     top: 70,
     left: 0,
     right: 0,
-    zIndex: 1000,
-    elevation: 1000,
+    zIndex: 9,
     alignItems: 'center',
     backgroundColor: 'transparent',
   },
@@ -365,8 +363,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     maxHeight: 250,
-    zIndex: 1000,
-    elevation: 1000,
+    zIndex: 9,
   },
   resultsContent: {
     padding: 8,
