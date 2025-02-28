@@ -11,8 +11,10 @@ import {
 import { weatherService } from '../services/weatherApi';
 import { WeatherData } from '../types/weather';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext';
+import { useUnits } from '../context/UnitsContext';
 import { darkTheme, lightTheme } from '../styles/theme';
-import { ru } from '../localization/ru';
+import { formatTemperature, formatWindSpeed, formatPressure } from '../utils/weatherUtils';
 
 interface WeatherDisplayProps {
   city: string;
@@ -20,6 +22,8 @@ interface WeatherDisplayProps {
 
 export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ city }) => {
   const { theme: currentTheme } = useApp();
+  const { translations } = useLanguage();
+  const { unitSystem, units } = useUnits();
   const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,14 +37,25 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ city }) => {
         const data = await weatherService.getWeather(city);
         setWeather(data as WeatherData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : ru.errors.apiError);
+        setError(err instanceof Error ? err.message : translations.errors.apiError);
       } finally {
         setLoading(false);
       }
     };
 
     fetchWeather();
-  }, [city]);
+  }, [city, translations.errors.apiError]);
+
+  // Добавляем эффект для отслеживания изменений в системе единиц
+  useEffect(() => {
+    console.log('[WeatherDisplay] Unit system changed to:', unitSystem);
+    // Если данные уже загружены, принудительно обновляем компонент
+    if (weather) {
+      console.log('[WeatherDisplay] Forcing update with new unit system');
+      // Создаем копию объекта weather, чтобы вызвать перерисовку
+      setWeather({...weather});
+    }
+  }, [unitSystem]);
 
   if (loading) {
     return (
@@ -62,6 +77,13 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ city }) => {
     return null;
   }
 
+  // Выбираем температуру в зависимости от системы единиц
+  const temp = unitSystem === 'metric' ? weather.current.temp_c : weather.current.temp_f;
+  const feelsLike = unitSystem === 'metric' ? weather.current.feelslike_c : weather.current.feelslike_f;
+  const windSpeed = unitSystem === 'metric' ? weather.current.wind_kph : weather.current.wind_mph;
+  const pressure = unitSystem === 'metric' ? weather.current.pressure_mb : weather.current.pressure_in;
+  const visibility = unitSystem === 'metric' ? weather.current.vis_km : weather.current.vis_miles;
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
       <View style={styles.mainInfo}>
@@ -73,10 +95,10 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ city }) => {
         </Text>
         <View style={styles.temperatureContainer}>
           <Text style={[styles.temperature, { color: theme.colors.textPrimary }]}>
-            {Math.round(weather.current.temp_c)}°C
+            {formatTemperature(temp, units, unitSystem)}
           </Text>
           <Text style={[styles.feelsLike, { color: theme.colors.textSecondary }]}>
-            {ru.weather.feelsLike} {Math.round(weather.current.feelslike_c)}°C
+            {translations.weather.feelsLike} {formatTemperature(feelsLike, units, unitSystem)}
           </Text>
         </View>
         <View style={styles.conditionContainer}>
@@ -93,15 +115,15 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ city }) => {
       <View style={styles.detailsContainer}>
         <View style={[styles.detailItem, { backgroundColor: theme.colors.cardBackground }]}>
           <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
-            {ru.weather.wind}
+            {translations.weather.wind}
           </Text>
           <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
-            {weather.current.wind_kph} {ru.units.speed}
+            {formatWindSpeed(windSpeed, units)}
           </Text>
         </View>
         <View style={[styles.detailItem, { backgroundColor: theme.colors.cardBackground }]}>
           <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
-            {ru.weather.humidity}
+            {translations.weather.humidity}
           </Text>
           <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
             {weather.current.humidity}%
@@ -109,15 +131,15 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ city }) => {
         </View>
         <View style={[styles.detailItem, { backgroundColor: theme.colors.cardBackground }]}>
           <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
-            {ru.weather.pressure}
+            {translations.weather.pressure}
           </Text>
           <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
-            {weather.current.pressure_mb} {ru.units.pressure}
+            {formatPressure(pressure, units)}
           </Text>
         </View>
         <View style={[styles.detailItem, { backgroundColor: theme.colors.cardBackground }]}>
           <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
-            {ru.weather.uvIndex}
+            {translations.weather.uvIndex}
           </Text>
           <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
             {weather.current.uv}

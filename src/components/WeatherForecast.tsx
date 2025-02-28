@@ -12,8 +12,10 @@ import {
 import { weatherService } from '../services/weatherApi';
 import { WeatherData, Hour, ForecastDay } from '../types/weather';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext';
+import { useUnits } from '../context/UnitsContext';
 import { darkTheme, lightTheme } from '../styles/theme';
-import { ru } from '../localization/ru';
+import { formatTemperature } from '../utils/weatherUtils';
 
 interface WeatherForecastProps {
   city: string;
@@ -21,6 +23,8 @@ interface WeatherForecastProps {
 
 export const WeatherForecast: React.FC<WeatherForecastProps> = ({ city }) => {
   const { theme: currentTheme } = useApp();
+  const { translations, language } = useLanguage();
+  const { unitSystem, units } = useUnits();
   const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
   const [forecast, setForecast] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,14 +38,25 @@ export const WeatherForecast: React.FC<WeatherForecastProps> = ({ city }) => {
         const data = await weatherService.getWeather(city);
         setForecast(data as WeatherData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : ru.errors.apiError);
+        setError(err instanceof Error ? err.message : translations.errors.apiError);
       } finally {
         setLoading(false);
       }
     };
 
     fetchForecast();
-  }, [city]);
+  }, [city, translations.errors.apiError]);
+
+  // Добавляем эффект для отслеживания изменений в системе единиц
+  useEffect(() => {
+    console.log('[WeatherForecast] Unit system changed to:', unitSystem);
+    // Если данные уже загружены, принудительно обновляем компонент
+    if (forecast) {
+      console.log('[WeatherForecast] Forcing update with new unit system');
+      // Создаем копию объекта forecast, чтобы вызвать перерисовку
+      setForecast({...forecast});
+    }
+  }, [unitSystem]);
 
   if (loading) {
     return (
@@ -76,26 +91,31 @@ export const WeatherForecast: React.FC<WeatherForecastProps> = ({ city }) => {
         showsHorizontalScrollIndicator={false}
         style={styles.hourlyContainer}
       >
-        {futureHours.map((hour, index) => (
-          <View 
-            key={index} 
-            style={[
-              styles.hourlyItem,
-              { backgroundColor: theme.colors.cardBackground }
-            ]}
-          >
-            <Text style={[styles.hourlyTime, { color: theme.colors.textSecondary }]}>
-              {new Date(hour.time).getHours()}:00
-            </Text>
-            <Image
-              source={{ uri: `https:${hour.condition.icon}` }}
-              style={styles.hourlyIcon as ImageStyle}
-            />
-            <Text style={[styles.hourlyTemp, { color: theme.colors.textPrimary }]}>
-              {Math.round(hour.temp_c)}{ru.units.temperature}
-            </Text>
-          </View>
-        ))}
+        {futureHours.map((hour, index) => {
+          // Выбираем температуру в зависимости от системы единиц
+          const temp = unitSystem === 'metric' ? hour.temp_c : hour.temp_f;
+          
+          return (
+            <View 
+              key={index} 
+              style={[
+                styles.hourlyItem,
+                { backgroundColor: theme.colors.cardBackground }
+              ]}
+            >
+              <Text style={[styles.hourlyTime, { color: theme.colors.textSecondary }]}>
+                {new Date(hour.time).getHours()}:00
+              </Text>
+              <Image
+                source={{ uri: `https:${hour.condition.icon}` }}
+                style={styles.hourlyIcon as ImageStyle}
+              />
+              <Text style={[styles.hourlyTemp, { color: theme.colors.textPrimary }]}>
+                {formatTemperature(temp, units, unitSystem)}
+              </Text>
+            </View>
+          );
+        })}
       </ScrollView>
     );
   };
@@ -103,37 +123,46 @@ export const WeatherForecast: React.FC<WeatherForecastProps> = ({ city }) => {
   const renderDailyForecast = (days: ForecastDay[]) => {
     return (
       <View style={styles.dailyContainer}>
-        {days.map((day, index) => (
-          <View 
-            key={index} 
-            style={[
-              styles.dailyItem,
-              { backgroundColor: theme.colors.cardBackground }
-            ]}
-          >
-            <Text style={[styles.dailyDate, { color: theme.colors.textPrimary }]}>
-              {new Date(day.date).toLocaleDateString('ru-RU', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-              })}
-            </Text>
-            <View style={styles.dailyDetails}>
-              <Image
-                source={{ uri: `https:${day.day.condition.icon}` }}
-                style={styles.dailyIcon as ImageStyle}
-              />
-              <View style={styles.dailyTemps}>
-                <Text style={[styles.dailyHighTemp, { color: theme.colors.textPrimary }]}>
-                  {Math.round(day.day.maxtemp_c)}{ru.units.temperature}
-                </Text>
-                <Text style={[styles.dailyLowTemp, { color: theme.colors.textSecondary }]}>
-                  {Math.round(day.day.mintemp_c)}{ru.units.temperature}
-                </Text>
+        {days.map((day, index) => {
+          // Выбираем температуру в зависимости от системы единиц
+          const maxTemp = unitSystem === 'metric' ? day.day.maxtemp_c : day.day.maxtemp_f;
+          const minTemp = unitSystem === 'metric' ? day.day.mintemp_c : day.day.mintemp_f;
+          
+          // Определяем локаль для форматирования даты
+          const locale = language === 'ru' ? 'ru-RU' : 'en-US';
+          
+          return (
+            <View 
+              key={index} 
+              style={[
+                styles.dailyItem,
+                { backgroundColor: theme.colors.cardBackground }
+              ]}
+            >
+              <Text style={[styles.dailyDate, { color: theme.colors.textPrimary }]}>
+                {new Date(day.date).toLocaleDateString(locale, {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </Text>
+              <View style={styles.dailyDetails}>
+                <Image
+                  source={{ uri: `https:${day.day.condition.icon}` }}
+                  style={styles.dailyIcon as ImageStyle}
+                />
+                <View style={styles.dailyTemps}>
+                  <Text style={[styles.dailyHighTemp, { color: theme.colors.textPrimary }]}>
+                    {formatTemperature(maxTemp, units, unitSystem)}
+                  </Text>
+                  <Text style={[styles.dailyLowTemp, { color: theme.colors.textSecondary }]}>
+                    {formatTemperature(minTemp, units, unitSystem)}
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
-        ))}
+          );
+        })}
       </View>
     );
   };
@@ -141,12 +170,12 @@ export const WeatherForecast: React.FC<WeatherForecastProps> = ({ city }) => {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
       <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>
-        {ru.weather.hourlyForecast}
+        {translations.weather.hourlyForecast}
       </Text>
       {renderHourlyForecast(forecast.forecast.forecastday[0].hour)}
       
       <Text style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>
-        {ru.weather.dailyForecast}
+        {translations.weather.dailyForecast}
       </Text>
       {renderDailyForecast(forecast.forecast.forecastday)}
     </View>

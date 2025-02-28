@@ -18,8 +18,10 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useUnits } from '../context/UnitsContext';
 import { darkTheme, lightTheme } from '../styles/theme';
 import type { WeatherData } from '../types/weather';
+import { formatTemperature, formatWindSpeed, formatPressure } from '../utils/weatherUtils';
 
 interface WeatherInfoProps {
   weatherData: WeatherData;
@@ -32,6 +34,7 @@ const AnimatedGradient = Animated.createAnimatedComponent(LinearGradient);
 export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) => {
   const { theme: currentTheme } = useApp();
   const { translations } = useLanguage();
+  const { unitSystem, units } = useUnits();
   const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
   
   // Анимированные значения
@@ -131,6 +134,12 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
     return currentTheme === 'dark' ? ['#122B40', '#1A3A56'] : ['#4DBBFF', '#3690EA'];
   };
 
+  // Выбираем значения в зависимости от системы единиц
+  const temp = unitSystem === 'metric' ? weatherData.current.temp_c : weatherData.current.temp_f;
+  const feelsLike = unitSystem === 'metric' ? weatherData.current.feelslike_c : weatherData.current.feelslike_f;
+  const windSpeed = unitSystem === 'metric' ? weatherData.current.wind_kph : weatherData.current.wind_mph;
+  const pressure = unitSystem === 'metric' ? weatherData.current.pressure_mb : weatherData.current.pressure_in;
+
   return (
     <Animated.View 
       entering={FadeIn.duration(500)}
@@ -167,7 +176,7 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
             <Animated.Text 
               style={[styles.temperature, temperatureAnimatedStyle]}
             >
-              {Math.round(weatherData.current.temp_c)}°
+              {Math.round(temp)}{units.temperature.charAt(0)}
             </Animated.Text>
             <Animated.Text 
               entering={FadeIn.delay(300).duration(300)}
@@ -191,7 +200,7 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
               {translations.weather.feelsLike}
             </Text>
             <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
-              {Math.round(weatherData.current.feelslike_c)}°C
+              {formatTemperature(feelsLike, units, unitSystem)}
             </Text>
           </Animated.View>
 
@@ -217,7 +226,7 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
               {translations.weather.wind}
             </Text>
             <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
-              {Math.round(weatherData.current.wind_kph)} км/ч
+              {formatWindSpeed(windSpeed, units)}
             </Text>
           </Animated.View>
 
@@ -230,7 +239,7 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
               {translations.weather.pressure}
             </Text>
             <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
-              {weatherData.current.pressure_mb} мб
+              {formatPressure(pressure, units)}
             </Text>
           </Animated.View>
         </Animated.View>

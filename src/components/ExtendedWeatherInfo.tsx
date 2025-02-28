@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useUnits } from '../context/UnitsContext';
 import { darkTheme, lightTheme } from '../styles/theme';
 
 interface ExtendedWeatherInfoProps {
@@ -25,7 +26,10 @@ interface ExtendedWeatherInfoProps {
 export const ExtendedWeatherInfo: React.FC<ExtendedWeatherInfoProps> = ({ data }) => {
   const { theme: currentTheme } = useApp();
   const { translations } = useLanguage();
+  const { unitSystem } = useUnits();
   const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
+
+  console.log('[ExtendedWeatherInfo] Rendering with unit system:', unitSystem);
 
   const getUVDescription = (uv: number): string => {
     if (uv <= 2) return translations.weather.uvLow;

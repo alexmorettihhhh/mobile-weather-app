@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform, NativeModules } from 'react-native';
 import { en } from '../localization/en';
 import { ru } from '../localization/ru';
+import { es } from '../localization/es';
+import { de } from '../localization/de';
 
-type Language = 'en' | 'ru';
-type Translations = typeof en | typeof ru;
+type Language = 'en' | 'ru' | 'es' | 'de';
+type Translations = typeof en | typeof ru | typeof es | typeof de;
 
 interface LanguageContextType {
   language: Language;
@@ -28,6 +31,39 @@ const defaultContextValue: LanguageContextType = {
 const LanguageContext = createContext<LanguageContextType>(defaultContextValue);
 
 const LANGUAGE_STORAGE_KEY = 'app_language';
+
+// Функция для определения языка устройства
+const getDeviceLanguage = (): Language => {
+  console.log('[LanguageContext] Detecting device language');
+  
+  // Получаем локаль устройства
+  let deviceLanguage = 'en';
+  
+  try {
+    if (Platform.OS === 'ios') {
+      deviceLanguage = NativeModules.SettingsManager.settings.AppleLocale || 
+                       NativeModules.SettingsManager.settings.AppleLanguages[0] || 
+                       'en';
+    } else if (Platform.OS === 'android') {
+      deviceLanguage = NativeModules.I18nManager.localeIdentifier || 'en';
+    }
+    
+    console.log('[LanguageContext] Device language detected:', deviceLanguage);
+    
+    // Извлекаем основной код языка (первые 2 символа)
+    const languageCode = deviceLanguage.substring(0, 2).toLowerCase();
+    
+    // Проверяем, поддерживается ли язык в приложении
+    if (['en', 'ru', 'es', 'de'].includes(languageCode)) {
+      return languageCode as Language;
+    }
+  } catch (error) {
+    console.error('[LanguageContext] Error detecting device language:', error);
+  }
+  
+  // Возвращаем английский по умолчанию, если не удалось определить язык
+  return 'en';
+};
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   console.log('[LanguageContext] Initializing provider');
@@ -58,7 +94,11 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         console.log('[LanguageContext] Found stored language:', storedLanguage);
         await setLanguage(storedLanguage as Language);
       } else {
-        console.log('[LanguageContext] No language found, using default (en)');
+        console.log('[LanguageContext] No language found, detecting device language');
+        // Определяем язык устройства и устанавливаем его
+        const deviceLanguage = getDeviceLanguage();
+        console.log('[LanguageContext] Using device language:', deviceLanguage);
+        await setLanguage(deviceLanguage);
       }
     } catch (error) {
       console.error('[LanguageContext] Failed to load language preference:', error);
@@ -73,13 +113,25 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setLanguageState(lang);
       
       console.log('[LanguageContext] Loading translations for:', lang);
-      // Защитное условие на случай, если ru не определен
-      if (lang === 'ru' && typeof ru === 'undefined') {
-        console.error('[LanguageContext] Russian translations not found, fallback to English');
-        setTranslations(en);
-        setError('Русский язык недоступен, используется английский');
-      } else {
-        setTranslations(lang === 'en' ? en : ru);
+      
+      // Выбираем соответствующие переводы в зависимости от языка
+      switch (lang) {
+        case 'en':
+          setTranslations(en);
+          break;
+        case 'ru':
+          setTranslations(ru);
+          break;
+        case 'es':
+          setTranslations(es);
+          break;
+        case 'de':
+          setTranslations(de);
+          break;
+        default:
+          console.error('[LanguageContext] Unknown language:', lang);
+          setTranslations(en);
+          setError(`Язык ${lang} недоступен, используется английский`);
       }
       
       console.log('[LanguageContext] Language updated successfully');

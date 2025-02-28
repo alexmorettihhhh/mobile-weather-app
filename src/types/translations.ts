@@ -15,16 +15,21 @@ export type Translations = {
     title: string;
     theme: string;
     language: string;
-    notifications: string;
-    location: string;
+    notifications?: string;
+    location?: string;
     dark: string;
     light: string;
-    system: string;
-    english: string;
-    russian: string;
+    system?: string;
+    english?: string;
+    russian?: string;
+    spanish?: string;
+    german?: string;
     appearance: string;
     about: string;
     version: string;
+    units?: string;
+    metric?: string;
+    imperial?: string;
   };
   weather: {
     temperature: string;
@@ -48,6 +53,8 @@ export type Translations = {
     uvVeryHigh: string;
     uvExtreme: string;
     hourlyForecast: string;
+    dailyForecast?: string;
+    temperatureChart?: string;
   };
   locations: {
     current: string;
@@ -57,6 +64,18 @@ export type Translations = {
     detectLocation: string;
     searchPlaceholder: string;
     currentLocation: string;
+  };
+  location: {
+    success: string;
+    cached: string;
+    permissionDenied: string;
+    disabled: string;
+    noInternet: string;
+    timeout: string;
+    error: string;
+    unknown: string;
+    retry: string;
+    settings: string;
   };
   astronomical: {
     title: string;
@@ -82,6 +101,22 @@ export type Translations = {
     unhealthy: string;
     veryUnhealthy: string;
     hazardous: string;
+    unknown?: string;
+    index?: string;
+  };
+  units: {
+    temperature: string;
+    speed: string;
+    pressure: string;
+    precipitation: string;
+    distance: string;
+  };
+  unitsImperial: {
+    temperature: string;
+    speed: string;
+    pressure: string;
+    precipitation: string;
+    distance: string;
   };
   directions: {
     N: string;
@@ -140,5 +175,63 @@ export type Translations = {
     apiError: string;
     locationError: string;
     networkError: string;
+    locationPermission?: string;
+    locationUnavailable?: string;
+    invalidApiKey?: string;
+  };
+  interactive?: {
+    title: string;
+    cloudSimulator?: {
+      title: string;
+      description: string;
+      instructions: string[];
+      requirements: string[];
+      ageGroup: string;
+    };
+    tornadoExperiment?: {
+      title: string;
+      description: string;
+      instructions: string[];
+      requirements: string[];
+      ageGroup: string;
+    };
+  };
+  quiz?: {
+    meteorologyBasics?: {
+      title: string;
+      description: string;
+      difficulty: string;
+      duration: string;
+      questionsCount: number;
+      startButton: string;
+    };
+    weatherPhenomena?: {
+      title: string;
+      description: string;
+      difficulty: string;
+      duration: string;
+      questionsCount: number;
+      startButton: string;
+    };
+    climateAndWeather?: {
+      title: string;
+      description: string;
+      difficulty: string;
+      duration: string;
+      questionsCount: number;
+      startButton: string;
+    };
+    atmosphericPhenomena?: {
+      title: string;
+      description: string;
+      difficulty: string;
+      duration: string;
+      questionsCount: number;
+      startButton: string;
+    };
+  };
+  search?: {
+    placeholder: string;
+    useLocation: string;
   };
 }; 

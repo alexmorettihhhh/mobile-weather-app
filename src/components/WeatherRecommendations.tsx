@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { WeatherData } from '../types/weather';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useUnits } from '../context/UnitsContext';
 import { darkTheme, lightTheme } from '../styles/theme';
 
 interface WeatherRecommendationsProps {
@@ -13,14 +14,23 @@ interface WeatherRecommendationsProps {
 export const WeatherRecommendations: React.FC<WeatherRecommendationsProps> = ({ weatherData }) => {
   const { theme: currentTheme } = useApp();
   const { translations } = useLanguage();
+  const { unitSystem } = useUnits();
   const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
 
+  // Выбираем температуру в зависимости от системы единиц
+  const temp = unitSystem === 'metric' ? weatherData.current.temp_c : weatherData.current.temp_f;
+
   const getClothingRecommendation = (temp: number): string => {
-    if (temp <= 0) {
+    // Пороговые значения для метрической и имперской систем
+    const thresholds = unitSystem === 'metric' 
+      ? { freezing: 0, cold: 10, mild: 20 }
+      : { freezing: 32, cold: 50, mild: 68 };
+      
+    if (temp <= thresholds.freezing) {
       return translations.recommendations.clothing.winter;
-    } else if (temp <= 10) {
+    } else if (temp <= thresholds.cold) {
       return translations.recommendations.clothing.warm;
-    } else if (temp <= 20) {
+    } else if (temp <= thresholds.mild) {
       return translations.recommendations.clothing.warm;
     } else {
       return translations.recommendations.clothing.light;
@@ -36,11 +46,16 @@ export const WeatherRecommendations: React.FC<WeatherRecommendationsProps> = ({ 
   };
 
   const getActivityRecommendation = (temp: number, condition: string): string => {
+    // Пороговые значения для метрической и имперской систем
+    const thresholds = unitSystem === 'metric' 
+      ? { hot: 30, freezing: -10 }
+      : { hot: 86, freezing: 14 };
+      
     if (needUmbrella(condition)) {
       return translations.recommendations.activities.rain;
-    } else if (temp > 30) {
+    } else if (temp > thresholds.hot) {
       return translations.recommendations.activities.indoor;
-    } else if (temp < -10) {
+    } else if (temp < thresholds.freezing) {
       return translations.recommendations.activities.cold;
     } else {
       return translations.recommendations.activities.perfect;
@@ -59,7 +74,7 @@ export const WeatherRecommendations: React.FC<WeatherRecommendationsProps> = ({ 
         <View style={[styles.recommendationItem, { backgroundColor: theme.colors.cardBackground }]}>
           <Icon name="hanger" size={24} color={theme.colors.primary} />
           <Text style={[styles.recommendationText, { color: theme.colors.textPrimary }]}>
-            {getClothingRecommendation(current.temp_c)}
+            {getClothingRecommendation(temp)}
           </Text>
         </View>
 
@@ -79,7 +94,7 @@ export const WeatherRecommendations: React.FC<WeatherRecommendationsProps> = ({ 
         <View style={[styles.recommendationItem, { backgroundColor: theme.colors.cardBackground }]}>
           <Icon name="run" size={24} color={theme.colors.primary} />
           <Text style={[styles.recommendationText, { color: theme.colors.textPrimary }]}>
-            {getActivityRecommendation(current.temp_c, current.condition.text)}
+            {getActivityRecommendation(temp, current.condition.text)}
           </Text>
         </View>
       </View>

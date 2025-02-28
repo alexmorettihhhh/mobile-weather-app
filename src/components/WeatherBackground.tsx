@@ -34,39 +34,30 @@ export const WeatherBackground: React.FC<WeatherBackgroundProps> = ({
   const { theme: currentTheme } = useApp();
   const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
   
-  // Определяем основной тип погоды
   const weatherType = useMemo(() => {
     const code = weatherData.current.condition.code;
     
-    // Солнечная погода
     if (code === 1000) return 'sunny';
     
-    // Облачная погода
     if ([1003, 1006, 1009, 1030, 1135, 1147].includes(code)) return 'cloudy';
     
-    // Дождь
     if ([1063, 1150, 1153, 1180, 1183, 1186, 1189, 1192, 1195, 1240, 1243, 1246].includes(code))
       return 'rainy';
     
-    // Снег
     if ([1066, 1114, 1117, 1210, 1213, 1216, 1219, 1222, 1225, 1255, 1258].includes(code))
       return 'snowy';
     
-    // Гроза
     if ([1087, 1273, 1276, 1279, 1282].includes(code))
       return 'stormy';
     
-    // По умолчанию возвращаем облачную погоду
     return 'cloudy';
   }, [weatherData]);
   
-  // Получаем время суток
   const isDay = useMemo(() => {
     const hours = new Date().getHours();
     return hours >= 6 && hours < 20;
   }, []);
   
-  // Анимированные значения
   const cloudPosition1 = useSharedValue(0);
   const cloudPosition2 = useSharedValue(0);
   const cloudOpacity = useSharedValue(0.8);

@@ -4,19 +4,19 @@ import { NavigationContainer } from '@react-navigation/native';
 import { AppNavigator } from './navigation/AppNavigator';
 import { AppProvider, useApp } from './context/AppContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { UnitsProvider } from './context/UnitsContext';
 import { darkTheme, lightTheme } from './styles/theme';
 
-// Игнорируем некоторые предупреждения, которые могут блокировать работу
+
 LogBox.ignoreLogs([
   'Non-serializable values were found in the navigation state',
   'VirtualizedLists should never be nested inside plain ScrollViews'
 ]);
 
-// Улучшенный глобальный обработчик ошибок
+
 if (__DEV__) {
   const originalConsoleError = console.error;
   console.error = (...args) => {
-    // Не логируем некоторые ошибки, которые часто вызывают проблемы
     if (
       args[0] && 
       typeof args[0] === 'string' && 
@@ -33,7 +33,6 @@ if (__DEV__) {
   };
 }
 
-// Типизированные интерфейсы для ErrorBoundary
 interface ErrorBoundaryProps {
   children: React.ReactNode;
 }
@@ -43,7 +42,6 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-// Компонент для перехвата ошибок в дереве компонентов
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = { hasError: false, error: null };
 
@@ -71,7 +69,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 }
 
-// Отдельный компонент для использования контекстов
+
 const AppContent = () => {
   console.log('[AppContent] Rendering AppContent component');
   const { theme: currentTheme } = useApp();
@@ -104,22 +102,22 @@ const AppContent = () => {
   );
 };
 
-// Компонент для внедрения в нужном порядке контекстов
 const AppWithProviders = () => {
   console.log('[AppWithProviders] Rendering with providers');
   
   return (
     <AppProvider>
       <LanguageProvider>
-        <ErrorBoundary>
-          <AppContent />
-        </ErrorBoundary>
+        <UnitsProvider>
+          <ErrorBoundary>
+            <AppContent />
+          </ErrorBoundary>
+        </UnitsProvider>
       </LanguageProvider>
     </AppProvider>
   );
 };
 
-// Основной компонент приложения
 export default function App() {
   console.log('[App] Rendering main component');
   

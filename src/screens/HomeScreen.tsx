@@ -25,6 +25,8 @@ import { useLanguage } from '../context/LanguageContext';
 import { darkTheme, lightTheme } from '../styles/theme';
 import { WeatherAlertService } from '../services/weatherAlertService';
 import { WeatherHistoryService } from '../services/weatherHistoryService';
+import { LocationService, LocationStatus } from '../services/locationService';
+import { LocationStatusIndicator } from '../components/LocationStatusIndicator';
 
 const AnimatedSectionList = Animated.createAnimatedComponent(SectionList);
 
@@ -33,14 +35,14 @@ export const HomeScreen: React.FC = () => {
   
   const { theme: currentTheme } = useApp();
   const { translations } = useLanguage();
-  const { weatherData, loading, refreshWeather, currentCity, setCity, error } = useWeather();
+  const { weatherData, loading, refreshWeather, currentCity, setCity, error, isOffline } = useWeather();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  // Callback для выбора города, обёрнутый в useCallback для предотвращения лишних ререндеров
+  const [locationStatus, setLocationStatus] = useState<LocationStatus>(LocationStatus.UNKNOWN);
+  const [locationMessage, setLocationMessage] = useState<string | undefined>(undefined);
+  
   const handleCitySelect = useCallback((city: string) => {
     console.log(`[HomeScreen] Город выбран: '${city}'`);
     
-    // Проверка валидности названия города
     if (!city || city.trim() === '') {
       console.warn('[HomeScreen] Пустое название города, игнорирую выбор');
       return;
@@ -77,9 +79,56 @@ export const HomeScreen: React.FC = () => {
     refreshWeather(true); // Принудительное обновление, пропуская кэш
   }, [refreshWeather]);
 
+  // Функция для определения местоположения пользователя
+  const detectUserLocation = useCallback(async () => {
+    if (__DEV__) console.log('Detecting user location');
+    
+    try {
+      setLocationStatus(LocationStatus.UNKNOWN);
+      setLocationMessage('Determining your location...');
+      
+      const result = await LocationService.getCurrentLocation(false, true);
+      setLocationStatus(result.status);
+      setLocationMessage(result.message);
+      
+      if (result.location && result.status !== LocationStatus.ERROR) {
+        const coords = {
+          latitude: result.location.coords.latitude,
+          longitude: result.location.coords.longitude
+        };
+        
+        const cityName = await LocationService.getLocationName(coords);
+        
+        if (cityName) {
+          handleCitySelect(cityName);
+          if (result.status === LocationStatus.SUCCESS) {
+            // Если успешно получили местоположение, скрываем индикатор через 3 секунды
+            setTimeout(() => {
+              if (locationStatus === LocationStatus.SUCCESS) {
+                setLocationStatus(LocationStatus.UNKNOWN);
+                setLocationMessage(undefined);
+              }
+            }, 3000);
+          }
+        } else {
+          setLocationStatus(LocationStatus.ERROR);
+          setLocationMessage('Could not determine city name from coordinates');
+        }
+      }
+    } catch (error) {
+      console.error('Error detecting location:', error);
+      setLocationStatus(LocationStatus.ERROR);
+      setLocationMessage('Unexpected error detecting location');
+    }
+  }, [handleCitySelect, locationStatus]);
+
   // Инициализация компонента
   useEffect(() => {
     if (__DEV__) console.log('HomeScreen mounted');
+    
+    // Проверяем текущий статус местоположения
+    const currentStatus = LocationService.getStatus();
+    setLocationStatus(currentStatus);
     
     return () => {
       if (__DEV__) console.log('HomeScreen unmounted');
@@ -190,6 +239,25 @@ export const HomeScreen: React.FC = () => {
             {translations.locations.searchPlaceholder}
           </Text>
           <CitySearch onCitySelect={handleCitySelect} />
+          
+          {/* Добавляем кнопку для определения местоположения */}
+          <View style={styles.locationButtonContainer}>
+            <Text 
+              style={[styles.locationButtonText, { color: theme.colors.primary }]}
+              onPress={detectUserLocation}
+            >
+              {translations.locations.detectLocation}
+            </Text>
+          </View>
+          
+          {/* Показываем индикатор статуса местоположения */}
+          {locationStatus !== LocationStatus.UNKNOWN && (
+            <LocationStatusIndicator 
+              status={locationStatus}
+              message={locationMessage}
+              onRetry={detectUserLocation}
+            />
+          )}
         </View>
       </View>
     );
@@ -204,6 +272,25 @@ export const HomeScreen: React.FC = () => {
           {error}
         </Text>
         <CitySearch onCitySelect={handleCitySelect} />
+        
+        {/* Добавляем кнопку для определения местоположения */}
+        <View style={styles.locationButtonContainer}>
+          <Text 
+            style={[styles.locationButtonText, { color: theme.colors.primary }]}
+            onPress={detectUserLocation}
+          >
+            {translations.locations.detectLocation}
+          </Text>
+        </View>
+        
+        {/* Показываем индикатор статуса местоположения */}
+        {locationStatus !== LocationStatus.UNKNOWN && (
+          <LocationStatusIndicator 
+            status={locationStatus}
+            message={locationMessage}
+            onRetry={detectUserLocation}
+          />
+        )}
       </View>
     );
   }
@@ -211,12 +298,36 @@ export const HomeScreen: React.FC = () => {
   const renderItem = ({ item }: { item: { type: string } }) => {
     switch (item.type) {
       case 'search':
-        return <CitySearch onCitySelect={handleCitySelect} />;
+        return (
+          <View style={styles.searchSection}>
+            <CitySearch onCitySelect={handleCitySelect} />
+            
+            {/* Добавляем кнопку для определения местоположения */}
+            <View style={styles.locationButtonContainer}>
+              <Text 
+                style={[styles.locationButtonText, { color: theme.colors.primary }]}
+                onPress={detectUserLocation}
+              >
+                {translations.locations.detectLocation}
+              </Text>
+            </View>
+            
+            {/* Показываем индикатор статуса местоположения */}
+            {locationStatus !== LocationStatus.UNKNOWN && (
+              <LocationStatusIndicator 
+                status={locationStatus}
+                message={locationMessage}
+                onRetry={detectUserLocation}
+              />
+            )}
+          </View>
+        );
       case 'current':
         return weatherData && 
           <Animated.View
-            entering={FadeIn}
+            entering={FadeIn.delay(300)}
             layout={Layout}
+            style={styles.weatherInfoSection}
           >
             <WeatherInfo 
               weatherData={weatherData} 
@@ -280,6 +391,7 @@ export const HomeScreen: React.FC = () => {
           />
         }
         stickySectionHeadersEnabled={false}
+        contentContainerStyle={styles.listContentContainer}
       />
     </View>
   );
@@ -291,6 +403,17 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
+  },
+  listContentContainer: {
+    paddingBottom: 20,
+  },
+  searchSection: {
+    marginBottom: 10,
+    zIndex: 5,
+  },
+  weatherInfoSection: {
+    marginTop: 10,
+    zIndex: 1,
   },
   centerContainer: {
     flex: 1,
@@ -311,5 +434,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 16,
+  },
+  locationButtonContainer: {
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  locationButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
   },
 }); 

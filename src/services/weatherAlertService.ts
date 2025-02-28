@@ -1,5 +1,7 @@
 import { WeatherData } from '../types/weather';
 import { generateUniqueId } from '../utils/idGenerator';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { UnitSystem } from '../context/UnitsContext';
 
 // Define the WeatherAlert interface
 export interface WeatherAlert {
@@ -14,6 +16,24 @@ export interface WeatherAlert {
 
 // Набор активных предупреждений
 let activeAlerts: WeatherAlert[] = [];
+
+// Текущая система единиц измерения
+let currentUnitSystem: UnitSystem = 'metric';
+
+// Загружаем систему единиц измерения из AsyncStorage
+const loadUnitSystem = async () => {
+  try {
+    const storedUnitSystem = await AsyncStorage.getItem('app_units');
+    if (storedUnitSystem) {
+      currentUnitSystem = storedUnitSystem as UnitSystem;
+    }
+  } catch (error) {
+    console.error('Failed to load unit system in WeatherAlertService:', error);
+  }
+};
+
+// Инициализируем загрузку системы единиц
+loadUnitSystem();
 
 export class WeatherAlertService {
   /**
@@ -30,6 +50,13 @@ export class WeatherAlertService {
     if (weatherData.current.air_quality) {
       this.checkAirQuality(weatherData);
     }
+  }
+
+  /**
+   * Обновление системы единиц измерения
+   */
+  static updateUnitSystem(unitSystem: UnitSystem): void {
+    currentUnitSystem = unitSystem;
   }
 
   /**
@@ -58,24 +85,33 @@ export class WeatherAlertService {
    * Проверка на экстремальные температуры
    */
   private static checkTemperature(weatherData: WeatherData): void {
-    const temp = weatherData.current.temp_c;
-    const feelsLike = weatherData.current.feelslike_c;
+    // Выбираем температуру в зависимости от системы единиц
+    const temp = currentUnitSystem === 'metric' ? weatherData.current.temp_c : weatherData.current.temp_f;
+    const feelsLike = currentUnitSystem === 'metric' ? weatherData.current.feelslike_c : weatherData.current.feelslike_f;
+    
+    // Единица измерения температуры
+    const tempUnit = currentUnitSystem === 'metric' ? '°C' : '°F';
+    
+    // Пороговые значения для метрической и имперской систем
+    const thresholds = currentUnitSystem === 'metric' 
+      ? { extremeHeat: 35, highHeat: 30, extremeCold: -15, highCold: -10, feelDiff: 5 }
+      : { extremeHeat: 95, highHeat: 86, extremeCold: 5, highCold: 14, feelDiff: 9 };
     
     // Сильная жара
-    if (temp >= 35) {
+    if (temp >= thresholds.extremeHeat) {
       this.createAlert({
         title: 'Экстремальная жара',
-        description: `Температура ${Math.round(temp)}°C. Избегайте длительного пребывания на солнце.`,
+        description: `Температура ${Math.round(temp)}${tempUnit}. Избегайте длительного пребывания на солнце.`,
         type: 'temperature',
         severity: 'high',
         expires: Date.now() + 3600000 // 1 час
       });
     }
     // Жара
-    else if (temp >= 30 && temp < 35) {
+    else if (temp >= thresholds.highHeat && temp < thresholds.extremeHeat) {
       this.createAlert({
         title: 'Высокая температура',
-        description: `Температура ${Math.round(temp)}°C. Пейте больше воды и ограничьте физическую активность.`,
+        description: `Температура ${Math.round(temp)}${tempUnit}. Пейте больше воды и ограничьте физическую активность.`,
         type: 'temperature',
         severity: 'medium',
         expires: Date.now() + 3600000 // 1 час
@@ -83,20 +119,20 @@ export class WeatherAlertService {
     }
     
     // Сильный холод
-    if (temp <= -15) {
+    if (temp <= thresholds.extremeCold) {
       this.createAlert({
         title: 'Экстремальный холод',
-        description: `Температура ${Math.round(temp)}°C. Избегайте длительного пребывания на улице.`,
+        description: `Температура ${Math.round(temp)}${tempUnit}. Избегайте длительного пребывания на улице.`,
         type: 'temperature',
         severity: 'high',
         expires: Date.now() + 3600000 // 1 час
       });
     }
     // Холод
-    else if (temp <= -10 && temp > -15) {
+    else if (temp <= thresholds.highCold && temp > thresholds.extremeCold) {
       this.createAlert({
         title: 'Низкая температура',
-        description: `Температура ${Math.round(temp)}°C. Одевайтесь теплее.`,
+        description: `Температура ${Math.round(temp)}${tempUnit}. Одевайтесь теплее.`,
         type: 'temperature',
         severity: 'medium',
         expires: Date.now() + 3600000 // 1 час
@@ -104,11 +140,11 @@ export class WeatherAlertService {
     }
     
     // Большая разница между реальной и ощущаемой температурой
-    if (Math.abs(temp - feelsLike) >= 5) {
+    if (Math.abs(temp - feelsLike) >= thresholds.feelDiff) {
       const feelingColder = feelsLike < temp;
       this.createAlert({
         title: feelingColder ? 'Холоднее, чем кажется' : 'Теплее, чем кажется',
-        description: `Температура ${Math.round(temp)}°C, но ощущается как ${Math.round(feelsLike)}°C.`,
+        description: `Температура ${Math.round(temp)}${tempUnit}, но ощущается как ${Math.round(feelsLike)}${tempUnit}.`,
         type: 'temperature',
         severity: 'low',
         expires: Date.now() + 3600000 // 1 час
@@ -120,33 +156,42 @@ export class WeatherAlertService {
    * Проверка на сильный ветер
    */
   private static checkWind(weatherData: WeatherData): void {
-    const windSpeed = weatherData.current.wind_kph;
+    // Выбираем скорость ветра в зависимости от системы единиц
+    const windSpeed = currentUnitSystem === 'metric' ? weatherData.current.wind_kph : weatherData.current.wind_mph;
+    
+    // Единица измерения скорости ветра
+    const speedUnit = currentUnitSystem === 'metric' ? 'км/ч' : 'миль/ч';
+    
+    // Пороговые значения для метрической и имперской систем
+    const thresholds = currentUnitSystem === 'metric' 
+      ? { hurricane: 90, strong: 60, moderate: 40 }
+      : { hurricane: 56, strong: 37, moderate: 25 };
     
     // Ураганный ветер
-    if (windSpeed >= 90) {
+    if (windSpeed >= thresholds.hurricane) {
       this.createAlert({
         title: 'Ураганный ветер',
-        description: `Скорость ветра ${Math.round(windSpeed)} км/ч. Опасно находиться на открытых пространствах.`,
+        description: `Скорость ветра ${Math.round(windSpeed)} ${speedUnit}. Опасно находиться на открытых пространствах.`,
         type: 'wind',
         severity: 'high',
         expires: Date.now() + 3600000 // 1 час
       });
     }
     // Сильный ветер
-    else if (windSpeed >= 60 && windSpeed < 90) {
+    else if (windSpeed >= thresholds.strong && windSpeed < thresholds.hurricane) {
       this.createAlert({
         title: 'Сильный ветер',
-        description: `Скорость ветра ${Math.round(windSpeed)} км/ч. Будьте осторожны на улице.`,
+        description: `Скорость ветра ${Math.round(windSpeed)} ${speedUnit}. Будьте осторожны на улице.`,
         type: 'wind',
         severity: 'medium',
         expires: Date.now() + 3600000 // 1 час
       });
     }
     // Умеренный ветер
-    else if (windSpeed >= 40 && windSpeed < 60) {
+    else if (windSpeed >= thresholds.moderate && windSpeed < thresholds.strong) {
       this.createAlert({
         title: 'Умеренный ветер',
-        description: `Скорость ветра ${Math.round(windSpeed)} км/ч.`,
+        description: `Скорость ветра ${Math.round(windSpeed)} ${speedUnit}.`,
         type: 'wind',
         severity: 'low',
         expires: Date.now() + 3600000 // 1 час

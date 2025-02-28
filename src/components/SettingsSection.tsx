@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useApp } from '../context/AppContext';
+import { useLanguage } from '../context/LanguageContext';
 import { darkTheme, lightTheme } from '../styles/theme';
-import { ru } from '../localization/ru';
 
 const SettingItem: React.FC<{
   icon: string;
@@ -85,14 +85,8 @@ const SettingItem: React.FC<{
 };
 
 export const SettingsSection: React.FC = () => {
-  const {
-    theme: currentTheme,
-    setTheme,
-    language,
-    setLanguage,
-    followSystem,
-    setFollowSystem,
-  } = useApp();
+  const { theme: currentTheme, setTheme } = useApp();
+  const { language, setLanguage } = useLanguage();
   const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
 
   const handleThemeChange = (theme: 'light' | 'dark') => {
@@ -110,26 +104,15 @@ export const SettingsSection: React.FC = () => {
           Внешний вид
         </Text>
         <SettingItem
-          icon="theme-light-dark"
-          title="Следовать настройкам системы"
-          description="Автоматически переключать тему в соответствии с системными настройками"
-          value={followSystem}
-          onValueChange={setFollowSystem}
+          icon="weather-sunny"
+          title="Светлая тема"
+          onPress={() => handleThemeChange('light')}
         />
-        {!followSystem && (
-          <>
-            <SettingItem
-              icon="weather-sunny"
-              title="Светлая тема"
-              onPress={() => handleThemeChange('light')}
-            />
-            <SettingItem
-              icon="weather-night"
-              title="Тёмная тема"
-              onPress={() => handleThemeChange('dark')}
-            />
-          </>
-        )}
+        <SettingItem
+          icon="weather-night"
+          title="Тёмная тема"
+          onPress={() => handleThemeChange('dark')}
+        />
       </View>
 
       <View style={styles.section}>

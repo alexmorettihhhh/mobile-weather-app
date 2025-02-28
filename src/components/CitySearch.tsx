@@ -137,7 +137,6 @@ export const CitySearch: React.FC<CitySearchProps> = ({ onCitySelect }) => {
     setIsFocused(false);
     Keyboard.dismiss();
     
-    // Добавим небольшую задержку перед вызовом onCitySelect
     setTimeout(() => {
       console.log(`[CitySearch] Вызываю функцию выбора города: ${city}`);
       onCitySelect(city);
@@ -149,6 +148,15 @@ export const CitySearch: React.FC<CitySearchProps> = ({ onCitySelect }) => {
     setDebouncedQuery('');
     setSearchResults([]);
     Keyboard.dismiss();
+    setIsFocused(false);
+  };
+
+  const handleOutsidePress = () => {
+    if (searchResults.length > 0) {
+      setSearchResults([]);
+      Keyboard.dismiss();
+      setIsFocused(false);
+    }
   };
 
   // Определяем цвета для темного режима в AMOLED-стиле
@@ -199,7 +207,11 @@ export const CitySearch: React.FC<CitySearchProps> = ({ onCitySelect }) => {
             onFocus={() => setIsFocused(true)}
             onBlur={() => {
               // Задержка, чтобы можно было успеть выбрать город
-              setTimeout(() => setIsFocused(false), 300);
+              setTimeout(() => {
+                if (searchResults.length > 0) {
+                  setIsFocused(false);
+                }
+              }, 300);
             }}
           />
           {searchQuery.length > 0 && (
@@ -238,10 +250,12 @@ export const CitySearch: React.FC<CitySearchProps> = ({ onCitySelect }) => {
 
       {searchResults.length > 0 && (
         <Animated.View
-          entering={FadeIn.duration(200)}
+          entering={SlideInDown.duration(200)}
           exiting={FadeOut.duration(150)}
-          style={styles.resultsOuterContainer}
-          pointerEvents="box-none"
+          style={[
+            styles.resultsOuterContainer,
+            { backgroundColor: theme.colors.background + '99' } // Полупрозрачный фон
+          ]}
         >
           <View style={[
             styles.resultsContainer, 
@@ -253,37 +267,43 @@ export const CitySearch: React.FC<CitySearchProps> = ({ onCitySelect }) => {
               keyboardShouldPersistTaps="always"
               keyExtractor={(item, index) => `city-${item}-${index}`}
               renderItem={({ item, index }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.resultItem,
-                    { 
-                      borderBottomColor: theme.colors.border,
-                      backgroundColor: theme.colors.cardBackground
-                    },
-                    index === searchResults.length - 1 && styles.lastResultItem
-                  ]}
-                  onPress={() => handleCitySelect(item)}
-                  activeOpacity={0.7}
+                <Animated.View
+                  entering={FadeIn.delay(index * 50).duration(200)}
+                  layout={Layout}
                 >
-                  <LinearGradient
-                    colors={[theme.colors.primary, theme.colors.info]}
-                    style={styles.iconBackground}
+                  <TouchableOpacity
+                    style={[
+                      styles.resultItem,
+                      { 
+                        borderBottomColor: theme.colors.border,
+                        backgroundColor: theme.colors.cardBackground
+                      },
+                      index === searchResults.length - 1 && styles.lastResultItem
+                    ]}
+                    onPress={() => handleCitySelect(item)}
+                    activeOpacity={0.7}
                   >
-                    <Icon name="map-marker" size={16} color="#FFFFFF" />
-                  </LinearGradient>
-                  <Text style={[styles.resultText, { color: theme.colors.textPrimary }]}>
-                    {item}
-                  </Text>
-                  <Icon
-                    name="chevron-right"
-                    size={20}
-                    color={theme.colors.textSecondary}
-                    style={styles.chevronIcon}
-                  />
-                </TouchableOpacity>
+                    <LinearGradient
+                      colors={[theme.colors.primary, theme.colors.info]}
+                      style={styles.iconBackground}
+                    >
+                      <Icon name="map-marker" size={16} color="#FFFFFF" />
+                    </LinearGradient>
+                    <Text style={[styles.resultText, { color: theme.colors.textPrimary }]}>
+                      {item}
+                    </Text>
+                    <Icon
+                      name="chevron-right"
+                      size={20}
+                      color={theme.colors.textSecondary}
+                      style={styles.chevronIcon}
+                    />
+                  </TouchableOpacity>
+                </Animated.View>
               )}
               style={styles.resultsList}
               contentContainerStyle={styles.resultsContent}
+              showsVerticalScrollIndicator={false}
             />
           </View>
         </Animated.View>
@@ -296,12 +316,13 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     padding: 16,
-    zIndex: 10,
+    zIndex: 5,
     position: 'relative',
+    minHeight: 80,
   },
   searchContainerWrapper: {
     width: '100%',
-    zIndex: 10,
+    zIndex: 5,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -327,7 +348,7 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
       },
       android: {
-        elevation: 4,
+        elevation: 2,
       },
     }),
   },
@@ -342,28 +363,32 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 72,
     top: 28,
-    zIndex: 11,
+    zIndex: 6,
   },
   errorText: {
     marginTop: 8,
     textAlign: 'center',
     fontSize: 14,
+    zIndex: 6,
   },
   resultsOuterContainer: {
     position: 'absolute',
-    top: 70,
+    top: 80,
     left: 0,
     right: 0,
-    zIndex: 9,
+    zIndex: 1000, // Увеличиваем z-index для результатов
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    paddingTop: 8,
+    paddingBottom: 16,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
   },
   resultsContainer: {
     width: '90%',
     borderRadius: 16,
     overflow: 'hidden',
     maxHeight: 250,
-    zIndex: 9,
+    zIndex: 1000, // Увеличиваем z-index для контейнера результатов
   },
   resultsContent: {
     padding: 8,

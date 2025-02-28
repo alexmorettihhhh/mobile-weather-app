@@ -1,5 +1,7 @@
 export interface ThemeColors {
   primary: string;
+  primaryLight: string;
+  onPrimary: string;
   secondary: string;
   background: string;
   backgroundSecondary: string;
@@ -59,6 +61,8 @@ export interface Theme {
 export const darkTheme: Theme = {
   colors: {
     primary: '#38B3EF',
+    primaryLight: '#5FC2F5',
+    onPrimary: '#FFFFFF',
     secondary: '#FFB74D',
     background: '#000000',
     backgroundSecondary: '#0A0A0A',
@@ -115,6 +119,8 @@ export const darkTheme: Theme = {
 export const lightTheme: Theme = {
   colors: {
     primary: '#1A97E1',
+    primaryLight: '#D1EBFF',
+    onPrimary: '#FFFFFF',
     secondary: '#FF9800',
     background: '#F4F9FD',
     backgroundSecondary: '#FFFFFF',

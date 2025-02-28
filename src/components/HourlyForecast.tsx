@@ -9,6 +9,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useUnits } from '../context/UnitsContext';
 import { darkTheme, lightTheme } from '../styles/theme';
 import type { Hour } from '../types/weather';
 
@@ -23,7 +24,10 @@ const CARD_MARGIN = 8;
 export const HourlyForecast: React.FC<HourlyForecastProps> = ({ hourlyData }) => {
   const { theme: currentTheme } = useApp();
   const { translations } = useLanguage();
+  const { unitSystem, units } = useUnits();
   const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
+
+  console.log('[HourlyForecast] Rendering with unit system:', unitSystem);
 
   const getWeatherIcon = (code: number): string => {
     const iconMap: { [key: number]: string } = {
@@ -84,6 +88,12 @@ export const HourlyForecast: React.FC<HourlyForecastProps> = ({ hourlyData }) =>
     return `${hour}:00`;
   };
 
+  // Получаем температуру в зависимости от выбранной системы единиц
+  const getTemperature = (hour: Hour): string => {
+    const temp = unitSystem === 'metric' ? hour.temp_c : hour.temp_f;
+    return `${Math.round(temp)}${units.temperature}`;
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
       <Text style={[styles.title, { color: theme.colors.textPrimary }]}>
@@ -110,7 +120,7 @@ export const HourlyForecast: React.FC<HourlyForecastProps> = ({ hourlyData }) =>
               style={styles.icon}
             />
             <Text style={[styles.tempText, { color: theme.colors.textPrimary }]}>
-              {Math.round(hour.temp_c)}°C
+              {getTemperature(hour)}
             </Text>
             <View style={styles.infoRow}>
               <Icon name="water-percent" size={12} color={theme.colors.info} />

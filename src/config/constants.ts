@@ -1,4 +1,3 @@
-import { ru } from '../localization/ru';
 import { ENV } from './env';
 
 export const API_KEY = ENV.WEATHER_API_KEY;
@@ -17,12 +16,26 @@ export const DEFAULT_LOCATION = {
 
 export const REFRESH_INTERVAL = 300000;
 
-export const WEATHER_UNITS = ru.units;
+// Дефолтные единицы измерения (метрическая система)
+export const DEFAULT_UNITS = {
+  temperature: '°C',
+  speed: 'km/h',
+  pressure: 'mb',
+  precipitation: 'mm',
+  distance: 'km',
+};
+
+// Дефолтные единицы измерения (имперская система)
+export const DEFAULT_UNITS_IMPERIAL = {
+  temperature: '°F',
+  speed: 'mph',
+  pressure: 'inHg',
+  precipitation: 'in',
+  distance: 'mi',
+};
 
 export const API_ENDPOINTS = {
   current: '/current.json',
   forecast: '/forecast.json',
   search: '/search.json',
-};
-
-export const ERROR_MESSAGES = ru.errors; 
+}; 

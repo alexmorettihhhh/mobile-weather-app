@@ -1,25 +1,79 @@
 import { WeatherData } from '../types/weather';
-import { WEATHER_UNITS } from '../config/constants';
+import { UnitSystem } from '../context/UnitsContext';
 
-export const formatTemperature = (temp: number): string => {
-  return `${Math.round(temp)}${WEATHER_UNITS.temperature}`;
+export const formatTemperature = (temp: number, units: { temperature: string }, unitSystem: UnitSystem): string => {
+  return `${Math.round(temp)}${units.temperature}`;
 };
 
-export const formatWindSpeed = (speed: number): string => {
-  return `${Math.round(speed)} ${WEATHER_UNITS.speed}`;
+export const formatWindSpeed = (speed: number, units: { speed: string }): string => {
+  return `${Math.round(speed)} ${units.speed}`;
 };
 
-export const formatPressure = (pressure: number): string => {
-  return `${pressure} ${WEATHER_UNITS.pressure}`;
+export const formatPressure = (pressure: number, units: { pressure: string }): string => {
+  return `${pressure} ${units.pressure}`;
 };
 
-export const formatDistance = (distance: number): string => {
-  return `${distance} ${WEATHER_UNITS.distance}`;
+export const formatDistance = (distance: number, units: { distance: string }): string => {
+  return `${distance} ${units.distance}`;
 };
 
-export const getWeatherDescription = (weatherData: WeatherData): string => {
-  const { temp_c, condition, humidity, wind_kph } = weatherData.current;
-  return `${condition.text}. Temperature: ${formatTemperature(temp_c)}, Humidity: ${humidity}%, Wind: ${formatWindSpeed(wind_kph)}`;
+export const formatPrecipitation = (precipitation: number, units: { precipitation: string }): string => {
+  return `${precipitation} ${units.precipitation}`;
+};
+
+export const getWeatherDescription = (
+  weatherData: WeatherData, 
+  units: { temperature: string; speed: string; }, 
+  unitSystem: UnitSystem
+): string => {
+  const temp = unitSystem === 'metric' ? weatherData.current.temp_c : weatherData.current.temp_f;
+
+  const windSpeed = unitSystem === 'metric' ? weatherData.current.wind_kph : weatherData.current.wind_mph;
+  
+  const { condition, humidity } = weatherData.current;
+  
+  return `${condition.text}. Temperature: ${formatTemperature(temp, units, unitSystem)}, Humidity: ${humidity}%, Wind: ${formatWindSpeed(windSpeed, units)}`;
+};
+
+
+export const convertTemperature = (value: number, toUnit: UnitSystem): number => {
+  if (toUnit === 'metric') {
+    return (value - 32) * 5 / 9;
+  } else {
+    return (value * 9 / 5) + 32;
+  }
+};
+
+export const convertWindSpeed = (value: number, toUnit: UnitSystem): number => {
+  if (toUnit === 'metric') {
+    return value * 1.60934;
+  } else {
+    return value / 1.60934;
+  }
+};
+
+export const convertPressure = (value: number, toUnit: UnitSystem): number => {
+  if (toUnit === 'metric') {
+    return value * 33.8639;
+  } else {
+    return value / 33.8639;
+  }
+};
+
+export const convertDistance = (value: number, toUnit: UnitSystem): number => {
+  if (toUnit === 'metric') {
+    return value * 1.60934;
+  } else {
+    return value / 1.60934;
+  }
+};
+
+export const convertPrecipitation = (value: number, toUnit: UnitSystem): number => {
+  if (toUnit === 'metric') {
+    return value * 25.4;
+  } else {
+    return value / 25.4;
+  }
 };
 
 export const getWindDirection = (degrees: number): string => {
