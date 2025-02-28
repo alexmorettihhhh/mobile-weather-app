@@ -10,6 +10,7 @@ export const ru = {
     search: 'Поиск',
     settings: 'Настройки',
     ok: 'OK',
+    weather: 'Погода',
   },
   weather: {
     temperature: 'Температура',

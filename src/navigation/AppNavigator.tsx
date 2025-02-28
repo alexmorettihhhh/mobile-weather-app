@@ -12,6 +12,7 @@ import Animated, {
   FadeIn, 
   FadeOut
 } from 'react-native-reanimated';
+import { Translations } from '../types/translations';
 
 const Tab = createBottomTabNavigator();
 
@@ -19,6 +20,9 @@ export const AppNavigator = () => {
   const { theme: currentTheme } = useApp();
   const { translations } = useLanguage();
   const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
+  
+  // Type assertion to make TypeScript recognize the common.weather property
+  const trans = translations as Translations;
 
   return (
     <Tab.Navigator
@@ -53,7 +57,7 @@ export const AppNavigator = () => {
         name="Home"
         component={HomeScreen}
         options={{
-          title: 'Погода',
+          title: trans.common.weather,
           tabBarIcon: ({ color, size }) => (
             <Icon name="weather-partly-cloudy" size={size} color={color} />
           ),
@@ -63,7 +67,7 @@ export const AppNavigator = () => {
         name="Favorites"
         component={FavoriteCitiesScreen}
         options={{
-          title: translations.locations.favorites,
+          title: trans.locations.favorites,
           tabBarIcon: ({ color, size }) => (
             <Icon name="star" size={size} color={color} />
           ),
@@ -73,7 +77,7 @@ export const AppNavigator = () => {
         name="Settings"
         component={SettingsScreen}
         options={{
-          title: translations.common.settings,
+          title: trans.common.settings,
           tabBarIcon: ({ color, size }) => (
             <Icon name="cog" size={size} color={color} />
           ),

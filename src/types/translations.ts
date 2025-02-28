@@ -10,6 +10,7 @@ export type Translations = {
     settings: string;
     error: string;
     ok: string;
+    weather?: string;
   };
   settings: {
     title: string;

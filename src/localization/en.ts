@@ -10,6 +10,7 @@ export const en = {
     edit: 'Edit',
     search: 'Search',
     ok: 'OK',
+    weather: 'Weather',
   },
   settings: {
     title: 'Settings',

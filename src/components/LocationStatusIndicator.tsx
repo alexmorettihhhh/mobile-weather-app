@@ -106,7 +106,7 @@ export const LocationStatusIndicator: React.FC<LocationStatusIndicatorProps> = (
           onPress={onRetry}
         >
           <Text style={[styles.retryText, { color: theme.colors.onPrimary }]}>
-            {translations.common.retry}
+            {trans.location?.retry || trans.common.retry}
           </Text>
         </TouchableOpacity>
       )}
