@@ -34,7 +34,7 @@ export const ru = {
     uvVeryHigh: 'Очень высокий',
     uvExtreme: 'Экстремальный',
     hourlyForecast: 'Почасовой прогноз',
-    dailyForecast: '7-дневный прогноз',
+    dailyForecast: '3-дневный прогноз',
     temperatureChart: 'График температуры',
     clear: 'Ясно',
     cloudy: 'Облачно',

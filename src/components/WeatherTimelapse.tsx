@@ -24,7 +24,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { darkTheme, lightTheme } from '../styles/theme';
-import type { Hour, WeatherData } from '../types/weather';
+import type { ForecastDay, WeatherData } from '../types/weather';
 
 const { width } = Dimensions.get('window');
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
@@ -38,97 +38,8 @@ export const WeatherTimelapse: React.FC<WeatherTimelapseProps> = ({ weatherData 
   const { translations } = useLanguage();
   const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
   
-  const hourlyData = weatherData.forecast.forecastday[0].hour;
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [currentHourIndex, setCurrentHourIndex] = useState(getCurrentHourIndex());
+  const dailyData = weatherData.forecast.forecastday;
   const scrollViewRef = useRef<ScrollView>(null);
-  
-  // Анимированные значения
-  const progressValue = useSharedValue(0);
-  const iconRotation = useSharedValue(0);
-  const playButtonScale = useSharedValue(1);
-  
-  // Получаем индекс текущего часа
-  function getCurrentHourIndex(): number {
-    const currentHour = new Date().getHours();
-    return hourlyData.findIndex(hour => {
-      const hourTime = new Date(hour.time).getHours();
-      return hourTime === currentHour;
-    });
-  }
-  
-  // Эффект для автоматической прокрутки к текущему часу
-  useEffect(() => {
-    if (scrollViewRef.current && currentHourIndex >= 0) {
-      // Небольшая задержка для уверенности, что компонент отрендерился
-      setTimeout(() => {
-        scrollViewRef.current?.scrollTo({
-          x: currentHourIndex * (width / 6), // Ширина каждого элемента
-          animated: true,
-        });
-      }, 500);
-    }
-  }, [currentHourIndex]);
-  
-  // Запуск/остановка воспроизведения
-  useEffect(() => {
-    if (isPlaying) {
-      // Начать анимацию
-      progressValue.value = 0;
-      progressValue.value = withTiming(1, {
-        duration: 24000 / playbackSpeed, // 24 часа со скоростью воспроизведения
-        easing: Easing.linear,
-      }, (finished) => {
-        if (finished) {
-          runOnJS(handlePlaybackComplete)();
-        }
-      });
-      
-      // Анимация иконки воспроизведения
-      iconRotation.value = withRepeat(
-        withTiming(360, { 
-          duration: 2000, 
-          easing: Easing.linear 
-        }),
-        -1,
-        false
-      );
-    } else {
-      // Остановить анимацию
-      cancelAnimation(progressValue);
-      cancelAnimation(iconRotation);
-    }
-    
-    return () => {
-      cancelAnimation(progressValue);
-      cancelAnimation(iconRotation);
-    };
-  }, [isPlaying, playbackSpeed]);
-  
-  // Функция обработки завершения воспроизведения
-  const handlePlaybackComplete = () => {
-    setIsPlaying(false);
-    setCurrentHourIndex(getCurrentHourIndex());
-  };
-  
-  // Функция для переключения воспроизведения
-  const togglePlayback = () => {
-    // Анимация кнопки воспроизведения
-    playButtonScale.value = withSequence(
-      withTiming(1.2, { duration: 150 }),
-      withTiming(1, { duration: 150 })
-    );
-    
-    setIsPlaying(!isPlaying);
-  };
-  
-  // Изменение скорости воспроизведения
-  const changePlaybackSpeed = () => {
-    const speeds = [1, 2, 4, 8];
-    const nextSpeedIndex = (speeds.indexOf(playbackSpeed) + 1) % speeds.length;
-    setPlaybackSpeed(speeds[nextSpeedIndex]);
-  };
   
   // Получение иконки погоды по коду
   const getWeatherIcon = (code: number): string => {
@@ -185,91 +96,27 @@ export const WeatherTimelapse: React.FC<WeatherTimelapseProps> = ({ weatherData 
     return iconMap[code] || 'weather-cloudy';
   };
   
-  // Получение градиента для часа в зависимости от времени и погоды
-  const getHourGradient = (hour: Hour) => {
-    const code = hour.condition.code;
-    const hourTime = new Date(hour.time).getHours();
-    const isDay = hourTime >= 6 && hourTime < 20;
+  // Получение градиента для дня в зависимости от погоды
+  const getDayGradient = (forecastDay: ForecastDay) => {
+    const code = forecastDay.day.condition.code;
     
-    if (isDay) {
-      if (code === 1000) return ['#4DBBFF', '#3690EA']; // Ясно днем
-      if ([1003, 1006, 1009].includes(code)) return ['#62C2FF', '#4A9BE0']; // Облачно днем
-      if ([1063, 1150, 1153, 1180, 1183, 1186, 1189, 1192, 1195, 1240, 1243, 1246].includes(code))
-        return ['#5E9DD8', '#4581B5']; // Дождь днем
-      if ([1066, 1114, 1117, 1210, 1213, 1216, 1219, 1222, 1225, 1255, 1258].includes(code))
-        return ['#9EBBD2', '#7E9AB0']; // Снег днем
-      if ([1087, 1273, 1276, 1279, 1282].includes(code))
-        return ['#6E8CAC', '#556A89']; // Гроза днем
-    } else {
-      if (code === 1000) return ['#0A1929', '#162F4A']; // Ясно ночью
-      if ([1003, 1006, 1009].includes(code)) return ['#0D2136', '#183958']; // Облачно ночью
-      if ([1063, 1150, 1153, 1180, 1183, 1186, 1189, 1192, 1195, 1240, 1243, 1246].includes(code))
-        return ['#0C1C2E', '#152C4A']; // Дождь ночью
-      if ([1066, 1114, 1117, 1210, 1213, 1216, 1219, 1222, 1225, 1255, 1258].includes(code))
-        return ['#0E1E2F', '#1B334D']; // Снег ночью
-      if ([1087, 1273, 1276, 1279, 1282].includes(code))
-        return ['#0A1521', '#162538']; // Гроза ночью
-    }
+    if (code === 1000) return ['#4DBBFF', '#3690EA']; // Ясно
+    if ([1003, 1006, 1009].includes(code)) return ['#62C2FF', '#4A9BE0']; // Облачно
+    if ([1063, 1150, 1153, 1180, 1183, 1186, 1189, 1192, 1195, 1240, 1243, 1246].includes(code))
+      return ['#5E9DD8', '#4581B5']; // Дождь
+    if ([1066, 1114, 1117, 1210, 1213, 1216, 1219, 1222, 1225, 1255, 1258].includes(code))
+      return ['#9EBBD2', '#7E9AB0']; // Снег
+    if ([1087, 1273, 1276, 1279, 1282].includes(code))
+      return ['#6E8CAC', '#556A89']; // Гроза
     
     return currentTheme === 'dark' ? ['#0A1929', '#162F4A'] : ['#4DBBFF', '#3690EA'];
   };
   
-  // Анимированные стили
-  const progressBarStyle = useAnimatedStyle(() => {
-    return {
-      width: `${progressValue.value * 100}%`,
-    };
-  });
-  
-  const playIconStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { scale: playButtonScale.value },
-        { rotate: `${iconRotation.value}deg` }
-      ],
-    };
-  });
-  
-  // Отображение времени в формате часы:минуты
-  const formatTime = (timeString: string) => {
-    const date = new Date(timeString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-  
-  // Отображение элемента часа
-  const renderHourItem = (hour: Hour, index: number) => {
-    const hourTime = formatTime(hour.time);
-    const isCurrentHour = index === currentHourIndex;
-    
-    return (
-      <View key={`hour-${index}`} style={styles.hourItem}>
-        <Text style={[styles.hourTime, { color: theme.colors.textSecondary }]}>
-          {hourTime}
-        </Text>
-        <LinearGradient
-          colors={getHourGradient(hour) as [string, string]}
-          style={[
-            styles.hourCard,
-            isCurrentHour && { borderColor: theme.colors.primary, borderWidth: 2 }
-          ]}
-        >
-          <Icon
-            name={getWeatherIcon(hour.condition.code)}
-            size={22}
-            color="#FFFFFF"
-          />
-          <Text style={styles.tempText}>{Math.round(hour.temp_c)}°</Text>
-        </LinearGradient>
-        <Text 
-          style={[
-            styles.precipText, 
-            { color: hour.chance_of_rain > 30 ? theme.colors.info : theme.colors.textSecondary }
-          ]}
-        >
-          {hour.chance_of_rain}%
-        </Text>
-      </View>
-    );
+  // Форматирование даты
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const options: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'short' };
+    return date.toLocaleDateString('ru-RU', options);
   };
   
   return (
@@ -283,53 +130,53 @@ export const WeatherTimelapse: React.FC<WeatherTimelapseProps> = ({ weatherData 
     >
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.colors.textPrimary }]}>
-          {(translations.common as any).dailyForecast || 'Daily Forecast'}
+          {translations.weather.dailyForecast}
         </Text>
-        <View style={styles.controlsContainer}>
-          <TouchableOpacity
-            onPress={changePlaybackSpeed}
-            style={[styles.speedButton, { backgroundColor: theme.colors.primary }]}
-          >
-            <Text style={styles.speedText}>{playbackSpeed}x</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={togglePlayback}
-            style={[styles.playButton, { backgroundColor: theme.colors.primary }]}
-          >
-            <AnimatedIcon
-              name={isPlaying ? 'pause' : 'play'}
-              size={24}
-              color="#FFFFFF"
-              style={playIconStyle}
-            />
-          </TouchableOpacity>
-        </View>
       </View>
       
-      <View style={styles.timelineContainer}>
-        <View style={[styles.progressBarBackground, { backgroundColor: theme.colors.border }]}>
-          <Animated.View
-            style={[
-              progressBarStyle,
-              styles.progressBar,
-              { backgroundColor: theme.colors.primary }
-            ]}
-          />
-        </View>
-        
-        <ScrollView
-          ref={scrollViewRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.hoursContainer}
-        >
-          {hourlyData.map((hour, index) => renderHourItem(hour, index))}
-        </ScrollView>
+      <View style={styles.daysContainer}>
+        {dailyData.map((day, index) => (
+          <View 
+            key={`day-${index}`} 
+            style={styles.dayItem}
+          >
+            <Text style={[styles.dayDate, { color: theme.colors.textSecondary }]}>
+              {index === 0 ? 'Сегодня' : formatDate(day.date)}
+            </Text>
+            <LinearGradient
+              colors={getDayGradient(day) as [string, string]}
+              style={[
+                styles.dayCard,
+                index === 0 && { borderColor: theme.colors.primary, borderWidth: 1.5 }
+              ]}
+            >
+              <Icon
+                name={getWeatherIcon(day.day.condition.code)}
+                size={28}
+                color="#FFFFFF"
+                style={styles.weatherIcon}
+              />
+              <View style={styles.tempContainer}>
+                <Text style={styles.maxTempText}>{Math.round(day.day.maxtemp_c)}°</Text>
+                <Text style={styles.minTempText}>{Math.round(day.day.mintemp_c)}°</Text>
+              </View>
+              <Text style={styles.conditionText}>{day.day.condition.text}</Text>
+            </LinearGradient>
+            <Text 
+              style={[
+                styles.precipText, 
+                { color: day.day.daily_chance_of_rain > 30 ? theme.colors.info : theme.colors.textSecondary }
+              ]}
+            >
+              {day.day.daily_chance_of_rain}%
+            </Text>
+          </View>
+        ))}
       </View>
       
       <View style={styles.footer}>
         <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>
-          {(translations.common as any).swipeToExplore || 'Swipe to explore all hours'}
+          {dailyData.length > 3 ? 'Проведите для просмотра всех дней' : ' '}
         </Text>
       </View>
     </Animated.View>
@@ -343,83 +190,73 @@ const styles = StyleSheet.create({
     margin: 16,
     marginTop: 8,
     marginBottom: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    paddingBottom: 8,
+    padding: 14,
+    paddingBottom: 6,
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
   },
-  controlsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  playButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  speedButton: {
-    paddingHorizontal: 10,
+  daysContainer: {
     paddingVertical: 6,
-    borderRadius: 12,
-    justifyContent: 'center',
+    paddingHorizontal: 6,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dayItem: {
     alignItems: 'center',
+    width: width / 3.5,
   },
-  speedText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 12,
-  },
-  timelineContainer: {
-    paddingHorizontal: 16,
-  },
-  progressBarBackground: {
-    height: 4,
-    borderRadius: 2,
-    marginBottom: 8,
-  },
-  progressBar: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  hoursContainer: {
-    paddingVertical: 8,
-  },
-  hourItem: {
-    alignItems: 'center',
-    marginRight: 10,
-    width: width / 6 - 10, // 6 элементов в строке с небольшим отступом
-  },
-  hourTime: {
-    fontSize: 12,
+  dayDate: {
+    fontSize: 11,
     marginBottom: 4,
+    fontWeight: '500',
   },
-  hourCard: {
+  dayCard: {
     width: '100%',
     aspectRatio: 1,
-    borderRadius: 12,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 8,
   },
-  tempText: {
+  tempContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  maxTempText: {
     color: '#FFFFFF',
     fontWeight: '700',
-    fontSize: 16,
-    marginTop: 4,
+    fontSize: 18,
+    marginRight: 4,
+  },
+  minTempText: {
+    color: '#FFFFFF',
+    fontWeight: '400',
+    fontSize: 14,
+    opacity: 0.8,
   },
   precipText: {
-    fontSize: 12,
+    fontSize: 11,
     marginTop: 4,
+    fontWeight: '500',
+  },
+  weatherIcon: {
+    marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   footer: {
     padding: 8,
@@ -427,5 +264,14 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
+    fontStyle: 'italic',
+  },
+  conditionText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 4,
+    opacity: 0.9,
   },
 }); 

@@ -6,17 +6,16 @@ import { AppProvider, useApp } from './src/context/AppContext';
 import { LanguageProvider, useLanguage } from './src/context/LanguageContext';
 import { darkTheme, lightTheme } from './src/styles/theme';
 
-// Игнорируем некоторые предупреждения, которые могут блокировать работу
+
 LogBox.ignoreLogs([
   'Non-serializable values were found in the navigation state',
   'VirtualizedLists should never be nested inside plain ScrollViews'
 ]);
 
-// Улучшенный глобальный обработчик ошибок
+
 if (__DEV__) {
   const originalConsoleError = console.error;
   console.error = (...args) => {
-    // Не логируем некоторые ошибки, которые часто вызывают проблемы
     if (
       args[0] && 
       typeof args[0] === 'string' && 
@@ -33,7 +32,6 @@ if (__DEV__) {
   };
 }
 
-// Типизированные интерфейсы для ErrorBoundary
 interface ErrorBoundaryProps {
   children: React.ReactNode;
 }
@@ -43,7 +41,6 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-// Компонент для перехвата ошибок в дереве компонентов
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = { hasError: false, error: null };
 
@@ -71,11 +68,11 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 }
 
-// Основной компонент приложения
+
 export default function App() {
   console.log('[App] Начало инициализации приложения');
   
-  // Компонент с провайдерами, который гарантирует правильную вложенность
+
   const AppWithProviders = () => {
     console.log('[AppWithProviders] Настройка провайдеров');
     

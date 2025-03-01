@@ -192,53 +192,53 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
           style={styles.detailsGrid}
         >
           <Animated.View 
-            entering={ZoomIn.delay(500).duration(300)}
+            entering={FadeIn.delay(500).duration(300)}
             style={[styles.detailItem, styles.detailItemCard]}
           >
-            <Icon name="thermometer" size={24} color={theme.colors.primary} />
-            <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
+            <Icon name="thermometer" size={24} color={theme.colors.primary} style={styles.detailIcon} />
+            <Text style={[styles.detailLabel, { color: 'rgba(255, 255, 255, 0.9)' }]}>
               {translations.weather.feelsLike}
             </Text>
-            <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
+            <Text style={[styles.detailValue, { color: '#FFFFFF' }]}>
               {formatTemperature(feelsLike, units, unitSystem)}
             </Text>
           </Animated.View>
 
           <Animated.View 
-            entering={ZoomIn.delay(600).duration(300)}
+            entering={FadeIn.delay(600).duration(300)}
             style={[styles.detailItem, styles.detailItemCard]}
           >
-            <Icon name="water-percent" size={24} color={theme.colors.primary} />
-            <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
+            <Icon name="water-percent" size={24} color={theme.colors.info} style={styles.detailIcon} />
+            <Text style={[styles.detailLabel, { color: 'rgba(255, 255, 255, 0.9)' }]}>
               {translations.weather.humidity}
             </Text>
-            <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
+            <Text style={[styles.detailValue, { color: '#FFFFFF' }]}>
               {weatherData.current.humidity}%
             </Text>
           </Animated.View>
 
           <Animated.View 
-            entering={ZoomIn.delay(700).duration(300)}
+            entering={FadeIn.delay(700).duration(300)}
             style={[styles.detailItem, styles.detailItemCard]}
           >
-            <Icon name="weather-windy" size={24} color={theme.colors.primary} />
-            <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
+            <Icon name="weather-windy" size={24} color={theme.colors.secondary} style={styles.detailIcon} />
+            <Text style={[styles.detailLabel, { color: 'rgba(255, 255, 255, 0.9)' }]}>
               {translations.weather.wind}
             </Text>
-            <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
+            <Text style={[styles.detailValue, { color: '#FFFFFF' }]}>
               {formatWindSpeed(windSpeed, units)}
             </Text>
           </Animated.View>
 
           <Animated.View 
-            entering={ZoomIn.delay(800).duration(300)}
+            entering={FadeIn.delay(800).duration(300)}
             style={[styles.detailItem, styles.detailItemCard]}
           >
-            <Icon name="gauge" size={24} color={theme.colors.primary} />
-            <Text style={[styles.detailLabel, { color: theme.colors.textSecondary }]}>
+            <Icon name="gauge" size={24} color={theme.colors.warning} style={styles.detailIcon} />
+            <Text style={[styles.detailLabel, { color: 'rgba(255, 255, 255, 0.9)' }]}>
               {translations.weather.pressure}
             </Text>
-            <Text style={[styles.detailValue, { color: theme.colors.textPrimary }]}>
+            <Text style={[styles.detailValue, { color: '#FFFFFF' }]}>
               {formatPressure(pressure, units)}
             </Text>
           </Animated.View>
@@ -253,6 +253,7 @@ const { width } = Dimensions.get('window');
 const styles = StyleSheet.create({
   outerContainer: {
     padding: 16,
+    marginBottom: 8,
   },
   container: {
     padding: 20,
@@ -334,25 +335,30 @@ const styles = StyleSheet.create({
     margin: 5,
   },
   detailItemCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(173, 216, 230, 0.8)',
     borderRadius: 16,
+    borderWidth: 0,
     shadowColor: 'rgba(0, 0, 0, 0.1)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 1,
   },
   detailLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.8)',
     marginTop: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   detailValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
     marginTop: 2,
+    textShadowColor: 'rgba(0, 0, 0, 0.15)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   iconGlow: {
     shadowColor: '#FFFFFF',
@@ -360,5 +366,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.8,
     shadowRadius: 15,
     borderRadius: 50,
+  },
+  detailIcon: {
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+    marginBottom: 8,
   },
 }); 

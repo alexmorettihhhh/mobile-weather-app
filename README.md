@@ -227,3 +227,77 @@ cd android
 ## Лицензия
 
 MIT License
+
+## Запуск приложения в Expo Go
+
+### Запуск production версии в Expo Go
+
+Для запуска production версии приложения в Expo Go выполните следующие шаги:
+
+1. Убедитесь, что у вас установлен Expo Go на вашем мобильном устройстве
+   - [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)
+   - [iOS](https://apps.apple.com/app/expo-go/id982107779)
+
+2. Соберите production версию приложения:
+   ```bash
+   npx expo export
+   ```
+
+3. Запустите локальный сервер для раздачи production сборки:
+   ```bash
+   npx serve dist
+   ```
+
+4. Найдите IP-адрес вашего компьютера в локальной сети (например, 192.168.1.100)
+
+5. Откройте Expo Go на вашем устройстве и выберите "Enter URL manually"
+
+6. Введите URL в формате `exp://192.168.1.100:3000` (замените IP-адрес на ваш)
+
+7. Приложение должно загрузиться в production режиме
+
+### Альтернативный способ (через QR-код)
+
+1. Соберите production версию:
+   ```bash
+   npx expo export
+   ```
+
+2. Запустите сервер:
+   ```bash
+   npx serve dist
+   ```
+
+3. Установите утилиту qrcode-terminal:
+   ```bash
+   npm install -g qrcode-terminal
+   ```
+
+4. Сгенерируйте QR-код для вашего IP-адреса:
+   ```bash
+   echo "exp://192.168.1.100:3000" | qrcode-terminal
+   ```
+
+5. Отсканируйте QR-код через приложение Expo Go
+
+## Разработка
+
+Для запуска приложения в режиме разработки:
+
+```bash
+npx expo start
+```
+
+## Сборка APK
+
+Для сборки APK файла:
+
+```bash
+cd android
+./gradlew assembleRelease
+```
+
+APK файл будет доступен по пути:
+```
+android/app/build/outputs/apk/release/app-release.apk
+```

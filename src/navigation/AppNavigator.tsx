@@ -21,7 +21,6 @@ export const AppNavigator = () => {
   const { translations } = useLanguage();
   const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
   
-  // Type assertion to make TypeScript recognize the common.weather property
   const trans = translations as Translations;
 
   return (

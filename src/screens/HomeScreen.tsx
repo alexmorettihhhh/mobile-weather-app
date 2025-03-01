@@ -406,14 +406,14 @@ const styles = StyleSheet.create({
   },
   listContentContainer: {
     paddingBottom: 20,
+    paddingTop: 10,
   },
   searchSection: {
     marginBottom: 10,
-    zIndex: 5,
+    marginTop: 5,
   },
   weatherInfoSection: {
     marginTop: 10,
-    zIndex: 1,
   },
   centerContainer: {
     flex: 1,

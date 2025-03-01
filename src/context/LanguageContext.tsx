@@ -20,8 +20,8 @@ interface LanguageContextType {
 
 // Создаем начальное дефолтное значение для контекста
 const defaultContextValue: LanguageContextType = {
-  language: 'en',
-  translations: en,
+  language: 'ru',
+  translations: ru,
   setLanguage: async () => {},
   error: null,
   clearError: () => {},
@@ -36,39 +36,14 @@ const LANGUAGE_STORAGE_KEY = 'app_language';
 const getDeviceLanguage = (): Language => {
   console.log('[LanguageContext] Detecting device language');
   
-  // Получаем локаль устройства
-  let deviceLanguage = 'en';
-  
-  try {
-    if (Platform.OS === 'ios') {
-      deviceLanguage = NativeModules.SettingsManager.settings.AppleLocale || 
-                       NativeModules.SettingsManager.settings.AppleLanguages[0] || 
-                       'en';
-    } else if (Platform.OS === 'android') {
-      deviceLanguage = NativeModules.I18nManager.localeIdentifier || 'en';
-    }
-    
-    console.log('[LanguageContext] Device language detected:', deviceLanguage);
-    
-    // Извлекаем основной код языка (первые 2 символа)
-    const languageCode = deviceLanguage.substring(0, 2).toLowerCase();
-    
-    // Проверяем, поддерживается ли язык в приложении
-    if (['en', 'ru', 'es', 'de'].includes(languageCode)) {
-      return languageCode as Language;
-    }
-  } catch (error) {
-    console.error('[LanguageContext] Error detecting device language:', error);
-  }
-  
-  // Возвращаем английский по умолчанию, если не удалось определить язык
-  return 'en';
+  // Всегда возвращаем русский язык
+  return 'ru';
 };
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   console.log('[LanguageContext] Initializing provider');
-  const [language, setLanguageState] = useState<Language>('en');
-  const [translations, setTranslations] = useState<Translations>(en);
+  const [language, setLanguageState] = useState<Language>('ru');
+  const [translations, setTranslations] = useState<Translations>(ru);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
 
@@ -130,8 +105,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           break;
         default:
           console.error('[LanguageContext] Unknown language:', lang);
-          setTranslations(en);
-          setError(`Язык ${lang} недоступен, используется английский`);
+          setTranslations(ru);
+          setError(`Язык ${lang} недоступен, используется русский`);
       }
       
       console.log('[LanguageContext] Language updated successfully');

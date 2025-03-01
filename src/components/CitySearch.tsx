@@ -159,7 +159,6 @@ export const CitySearch: React.FC<CitySearchProps> = ({ onCitySelect }) => {
     }
   };
 
-  // Определяем цвета для темного режима в AMOLED-стиле
   const getDarkModeColors = () => {
     return {
       searchContainer: ['#121212', '#0A0A0A'] as readonly [string, string],
@@ -167,7 +166,6 @@ export const CitySearch: React.FC<CitySearchProps> = ({ onCitySelect }) => {
     };
   };
 
-  // Определяем цвета для светлого режима
   const getLightModeColors = () => {
     return {
       searchContainer: ['rgba(255, 255, 255, 0.9)', 'rgba(240, 249, 255, 0.95)'] as readonly [string, string],
@@ -254,7 +252,7 @@ export const CitySearch: React.FC<CitySearchProps> = ({ onCitySelect }) => {
           exiting={FadeOut.duration(150)}
           style={[
             styles.resultsOuterContainer,
-            { backgroundColor: theme.colors.background + '99' } // Полупрозрачный фон
+            { backgroundColor: theme.colors.background + '99' }
           ]}
         >
           <View style={[
@@ -315,8 +313,9 @@ export const CitySearch: React.FC<CitySearchProps> = ({ onCitySelect }) => {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    padding: 16,
-    zIndex: 5,
+    alignItems: 'center',
+    zIndex: 1000,
+    elevation: 1000,
     position: 'relative',
     minHeight: 80,
   },
@@ -376,7 +375,8 @@ const styles = StyleSheet.create({
     top: 80,
     left: 0,
     right: 0,
-    zIndex: 1000, // Увеличиваем z-index для результатов
+    zIndex: 1001,
+    elevation: 1001,
     alignItems: 'center',
     paddingTop: 8,
     paddingBottom: 16,
@@ -388,7 +388,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     maxHeight: 250,
-    zIndex: 1000, // Увеличиваем z-index для контейнера результатов
+    zIndex: 1001,
+    elevation: 1001,
   },
   resultsContent: {
     padding: 8,

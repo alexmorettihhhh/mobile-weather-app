@@ -55,7 +55,9 @@ export const WeatherBackground: React.FC<WeatherBackgroundProps> = ({
   
   const isDay = useMemo(() => {
     const hours = new Date().getHours();
-    return hours >= 6 && hours < 20;
+    const isDayTime = __DEV__ ? false : (hours >= 6 && hours < 20);
+    console.log('[WeatherBackground] Current hour:', hours, 'isDay:', isDayTime, 'DEV mode:', __DEV__, 'Release mode:', !__DEV__);
+    return isDayTime;
   }, []);
   
   const cloudPosition1 = useSharedValue(0);
@@ -67,110 +69,139 @@ export const WeatherBackground: React.FC<WeatherBackgroundProps> = ({
   const sunScale = useSharedValue(1);
   const sunRotation = useSharedValue(0);
   const lightningOpacity = useSharedValue(0);
+  const starPosition = useSharedValue(0);
   
-  // Запускаем анимации при изменении типа погоды
+  const createStarFallAnimation = () => {
+    // Создаем анимацию падения звезд
+    const starFallAnimation = withRepeat(
+      withTiming(-height, { duration: 5000, easing: Easing.linear }),
+      -1,
+      false
+    );
+
+    // Применяем анимацию к каждой звезде
+    starPosition.value = starFallAnimation;
+  };
+  
+  // Запускаем анимацию при изменении типа погоды
   useEffect(() => {
-    // Анимация облаков для всех типов погоды кроме ясной
-    if (weatherType !== 'sunny') {
-      cloudPosition1.value = 0;
-      cloudPosition2.value = width * 0.5;
-      
-      // Облака плавно плывут по экрану
-      cloudPosition1.value = withRepeat(
-        withTiming(-width, { duration: 60000, easing: Easing.linear }),
-        -1,
-        false
-      );
-      
-      cloudPosition2.value = withRepeat(
-        withTiming(-width * 1.5, { duration: 70000, easing: Easing.linear }),
-        -1,
-        false
-      );
-      
-      // Пульсация облаков для эффекта объемности
-      cloudOpacity.value = withRepeat(
-        withSequence(
-          withTiming(0.6, { duration: 4000 }),
-          withTiming(0.9, { duration: 4000 })
-        ),
-        -1,
-        true
-      );
-    }
+    console.log('[WeatherBackground] Starting animations for weather type:', weatherType, 'isDay:', isDay);
     
-    // Анимации для дождя
-    if (weatherType === 'rainy') {
-      rainYPosition.value = 0;
-      rainYPosition.value = withRepeat(
-        withTiming(height, { duration: 1500, easing: Easing.linear }),
-        -1,
-        false
-      );
-    }
+    // Сбрасываем все анимации при каждом рендере
+    cloudPosition1.value = 0;
+    cloudPosition2.value = width * 0.5;
+    cloudOpacity.value = 0.8;
+    rainYPosition.value = 0;
+    snowYPosition.value = 0;
+    snowRotation.value = 0;
+    sunScale.value = 1;
+    sunRotation.value = 0;
+    lightningOpacity.value = 0;
+    starPosition.value = 0;
     
-    // Анимации для снега
-    if (weatherType === 'snowy') {
-      snowYPosition.value = 0;
-      snowRotation.value = 0;
-      
-      snowYPosition.value = withRepeat(
-        withTiming(height, { duration: 8000, easing: Easing.linear }),
-        -1,
-        false
-      );
-      
-      snowRotation.value = withRepeat(
-        withTiming(360, { duration: 3000, easing: Easing.linear }),
-        -1,
-        false
-      );
-    }
-    
-    // Анимации для солнца
-    if (weatherType === 'sunny' && isDay) {
-      sunScale.value = 1;
-      sunRotation.value = 0;
-      
-      sunScale.value = withRepeat(
-        withSequence(
-          withTiming(1.1, { duration: 5000 }),
-          withTiming(1, { duration: 5000 })
-        ),
-        -1,
-        true
-      );
-      
-      sunRotation.value = withRepeat(
-        withTiming(360, { duration: 120000, easing: Easing.linear }),
-        -1,
-        false
-      );
-    }
-    
-    // Анимации для грозы
-    if (weatherType === 'stormy') {
-      const createLightningFlash = () => {
-        lightningOpacity.value = withSequence(
-          withTiming(0.9, { duration: 100 }),
-          withTiming(0, { duration: 100 }),
-          withDelay(
-            Math.random() * 5000 + 2000, // Случайная задержка между молниями
-            withTiming(0.7, { duration: 50 })
-          ),
-          withTiming(0, { duration: 150 })
+    setTimeout(() => {
+      // Анимация облаков для всех типов погоды кроме ясной
+      if (weatherType !== 'sunny') {
+        // Облака плавно плывут по экрану с разной скоростью для создания эффекта глубины
+        cloudPosition1.value = withRepeat(
+          withTiming(-width, { duration: 120000, easing: Easing.linear }),
+          -1,
+          false
         );
-      };
+        
+        cloudPosition2.value = withRepeat(
+          withTiming(-width * 1.5, { duration: 150000, easing: Easing.linear }),
+          -1,
+          false
+        );
+        
+        // Более плавная пульсация облаков
+        cloudOpacity.value = withRepeat(
+          withSequence(
+            withTiming(0.7, { duration: 8000, easing: Easing.inOut(Easing.ease) }),
+            withTiming(0.9, { duration: 8000, easing: Easing.inOut(Easing.ease) })
+          ),
+          -1,
+          true
+        );
+      }
       
-      // Запускаем первую молнию
-      createLightningFlash();
+      // Анимации для дождя - более естественное падение
+      if (weatherType === 'rainy') {
+        rainYPosition.value = withRepeat(
+          withTiming(height, { duration: 2000, easing: Easing.linear }),
+          -1,
+          false
+        );
+      }
       
-      // Запускаем интервал для случайных молний
-      const lightningInterval = setInterval(createLightningFlash, 6000);
+      // Анимации для снега - более плавное падение и вращение
+      if (weatherType === 'snowy') {
+        snowYPosition.value = withRepeat(
+          withTiming(height, { duration: 12000, easing: Easing.linear }),
+          -1,
+          false
+        );
+        
+        snowRotation.value = withRepeat(
+          withTiming(360, { duration: 10000, easing: Easing.linear }),
+          -1,
+          false
+        );
+      }
       
-      return () => clearInterval(lightningInterval);
-    }
-  }, [weatherType, isDay]);
+      // Анимации для солнца - более плавное пульсирование и медленное вращение
+      if (weatherType === 'sunny' && isDay) {
+        sunScale.value = withRepeat(
+          withSequence(
+            withTiming(1.05, { duration: 8000, easing: Easing.inOut(Easing.ease) }),
+            withTiming(1, { duration: 8000, easing: Easing.inOut(Easing.ease) })
+          ),
+          -1,
+          true
+        );
+        
+        sunRotation.value = withRepeat(
+          withTiming(360, { duration: 240000, easing: Easing.linear }),
+          -1,
+          false
+        );
+      }
+      
+      // Анимации для грозы - более реалистичные вспышки молний
+      if (weatherType === 'stormy') {
+        const createLightningFlash = () => {
+          lightningOpacity.value = withSequence(
+            withTiming(0.9, { duration: 50 }),
+            withTiming(0.3, { duration: 50 }),
+            withTiming(0.7, { duration: 50 }),
+            withTiming(0, { duration: 200 }),
+            withDelay(
+              Math.random() * 8000 + 3000, // Более случайная задержка между молниями
+              withTiming(0, { duration: 0 })
+            )
+          );
+        };
+        
+        // Запускаем первую молнию
+        createLightningFlash();
+        
+        // Запускаем интервал для случайных молний
+        const lightningInterval = setInterval(createLightningFlash, 8000);
+        
+        return () => clearInterval(lightningInterval);
+      }
+
+      // Запускаем анимацию падения звезд
+      createStarFallAnimation();
+    }, 100);
+    
+    // Очистка анимаций при размонтировании компонента
+    return () => {
+      console.log('[WeatherBackground] Cleaning up animations');
+      // Здесь можно добавить дополнительную логику очистки, если необходимо
+    };
+  }, [weatherType, isDay, width, height]);
   
   // Анимированные стили
   const cloud1Style = useAnimatedStyle(() => ({
@@ -236,22 +267,31 @@ export const WeatherBackground: React.FC<WeatherBackgroundProps> = ({
             style={[StyleSheet.absoluteFill, { opacity }]}
           >
             {isDay ? (
-              // Солнце днем
+              // Солнце днем - улучшенная версия
               <Animated.View style={sunStyle}>
                 <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
+                  {/* Внешнее свечение */}
                   <Circle 
                     cx={width * 0.3} 
                     cy={height * 0.15} 
-                    r={40} 
-                    fill="#FFF176" 
+                    r={60} 
+                    fill="rgba(255, 235, 59, 0.2)" 
                   />
+                  {/* Среднее свечение */}
                   <Circle 
                     cx={width * 0.3} 
                     cy={height * 0.15} 
                     r={50} 
-                    fill="rgba(255, 236, 95, 0.5)" 
+                    fill="rgba(255, 235, 59, 0.4)" 
                   />
-                  {/* Лучи солнца */}
+                  {/* Основной круг солнца */}
+                  <Circle 
+                    cx={width * 0.3} 
+                    cy={height * 0.15} 
+                    r={40} 
+                    fill="#FFEB3B" 
+                  />
+                  {/* Лучи солнца - более естественные */}
                   {Array.from({ length: 12 }).map((_, i) => (
                     <Line 
                       key={i} 
@@ -259,31 +299,55 @@ export const WeatherBackground: React.FC<WeatherBackgroundProps> = ({
                       y1={height * 0.15} 
                       x2={width * 0.3 + Math.cos(i * Math.PI / 6) * 70} 
                       y2={height * 0.15 + Math.sin(i * Math.PI / 6) * 70} 
-                      stroke="rgba(255, 236, 95, 0.7)" 
-                      strokeWidth={2} 
+                      stroke="rgba(255, 235, 59, 0.5)" 
+                      strokeWidth={3} 
+                      strokeLinecap="round"
                     />
                   ))}
                 </Svg>
               </Animated.View>
             ) : (
-              // Звезды ночью
+              // Звезды ночью - улучшенная версия
               <>
-                {Array.from({ length: 50 }).map((_, i) => (
-                  <Circle 
-                    key={i} 
-                    cx={Math.random() * width} 
-                    cy={Math.random() * height * 0.7} 
-                    r={Math.random() * 1.5 + 0.5} 
-                    fill="#FFFFFF" 
-                    opacity={Math.random() * 0.5 + 0.5} 
-                  />
-                ))}
-                {/* Луна */}
+                {/* Более разнообразные звезды */}
+                {Array.from({ length: 80 }).map((_, i) => {
+                  const size = Math.random() * 1.5 + 0.5;
+                  const opacity = Math.random() * 0.5 + 0.5;
+                  return (
+                    <Circle 
+                      key={i} 
+                      cx={Math.random() * width} 
+                      cy={Math.random() * height * 0.7} 
+                      r={size} 
+                      fill="#FFFFFF" 
+                      opacity={opacity} 
+                    />
+                  );
+                })}
+                {/* Луна с кратерами */}
                 <Circle 
                   cx={width * 0.7} 
                   cy={height * 0.15} 
-                  r={30} 
+                  r={35} 
                   fill="#E6E6E6" 
+                />
+                <Circle 
+                  cx={width * 0.7 - 10} 
+                  cy={height * 0.15 - 5} 
+                  r={5} 
+                  fill="#D9D9D9" 
+                />
+                <Circle 
+                  cx={width * 0.7 + 8} 
+                  cy={height * 0.15 + 10} 
+                  r={7} 
+                  fill="#D9D9D9" 
+                />
+                <Circle 
+                  cx={width * 0.7 + 15} 
+                  cy={height * 0.15 - 8} 
+                  r={4} 
+                  fill="#D9D9D9" 
                 />
               </>
             )}
@@ -295,18 +359,27 @@ export const WeatherBackground: React.FC<WeatherBackgroundProps> = ({
           <>
             <Animated.View style={cloud1Style}>
               <Svg width={width * 1.5} height={height} style={[StyleSheet.absoluteFill, { opacity }]}>
-                {/* Большое облако */}
+                {/* Улучшенное большое облако */}
                 <Path 
-                  d="M100,100 Q150,70 200,100 Q250,70 300,100 Q350,70 400,100 Q450,70 500,100 L500,150 Q450,180 400,150 Q350,180 300,150 Q250,180 200,150 Q150,180 100,150 Z" 
-                  fill={currentTheme === 'dark' ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.7)"} 
+                  d="M50,100 Q100,60 150,80 Q200,50 250,80 Q300,60 350,80 Q400,50 450,80 Q500,60 550,100 L550,150 Q500,180 450,160 Q400,190 350,160 Q300,190 250,160 Q200,190 150,160 Q100,180 50,150 Z" 
+                  fill={currentTheme === 'dark' ? "rgba(255, 255, 255, 0.2)" : "rgba(255, 255, 255, 0.8)"} 
                 />
               </Svg>
             </Animated.View>
             <Animated.View style={cloud2Style}>
               <Svg width={width * 1.5} height={height} style={[StyleSheet.absoluteFill, { opacity }]}>
-                {/* Маленькое облако */}
+                {/* Улучшенное маленькое облако */}
                 <Path 
-                  d="M250,200 Q300,170 350,200 Q400,170 450,200 L450,250 Q400,280 350,250 Q300,280 250,250 Z" 
+                  d="M200,180 Q250,150 300,170 Q350,140 400,170 Q450,150 500,180 L500,230 Q450,260 400,240 Q350,270 300,240 Q250,260 200,230 Z" 
+                  fill={currentTheme === 'dark' ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.6)"} 
+                />
+              </Svg>
+            </Animated.View>
+            {/* Дополнительное облако для объема */}
+            <Animated.View style={[cloud1Style, { transform: [{ translateX: -width * 0.3 }] }]}>
+              <Svg width={width * 1.5} height={height} style={[StyleSheet.absoluteFill, { opacity: opacity * 0.7 }]}>
+                <Path 
+                  d="M300,140 Q350,110 400,130 Q450,100 500,130 Q550,110 600,140 L600,190 Q550,220 500,200 Q450,230 400,200 Q350,220 300,190 Z" 
                   fill={currentTheme === 'dark' ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.5)"} 
                 />
               </Svg>
@@ -317,30 +390,37 @@ export const WeatherBackground: React.FC<WeatherBackgroundProps> = ({
       case 'rainy':
         return (
           <>
-            {/* Облака */}
+            {/* Улучшенные облака */}
             <Animated.View style={cloud1Style}>
               <Svg width={width * 1.5} height={height} style={[StyleSheet.absoluteFill, { opacity }]}>
                 <Path 
-                  d="M100,100 Q150,70 200,100 Q250,70 300,100 Q350,70 400,100 Q450,70 500,100 L500,150 Q450,180 400,150 Q350,180 300,150 Q250,180 200,150 Q150,180 100,150 Z" 
-                  fill={currentTheme === 'dark' ? "rgba(180, 180, 180, 0.25)" : "rgba(220, 220, 220, 0.8)"} 
+                  d="M50,100 Q100,60 150,80 Q200,50 250,80 Q300,60 350,80 Q400,50 450,80 Q500,60 550,100 L550,150 Q500,180 450,160 Q400,190 350,160 Q300,190 250,160 Q200,190 150,160 Q100,180 50,150 Z" 
+                  fill={currentTheme === 'dark' ? "rgba(180, 180, 180, 0.3)" : "rgba(220, 220, 220, 0.9)"} 
                 />
               </Svg>
             </Animated.View>
             
-            {/* Дождь */}
+            {/* Улучшенный дождь - более естественные капли */}
             <Animated.View style={rainStyle}>
               <Svg width={width} height={height} style={[StyleSheet.absoluteFill, { opacity }]}>
-                {Array.from({ length: 40 }).map((_, i) => (
-                  <Line 
-                    key={i}
-                    x1={Math.random() * width} 
-                    y1={Math.random() * height * 0.5} 
-                    x2={Math.random() * width} 
-                    y2={Math.random() * height * 0.5 + 20} 
-                    stroke={currentTheme === 'dark' ? "rgba(200, 230, 255, 0.4)" : "rgba(120, 180, 255, 0.7)"} 
-                    strokeWidth={1.5} 
-                  />
-                ))}
+                {Array.from({ length: 60 }).map((_, i) => {
+                  const x = Math.random() * width;
+                  const y = Math.random() * height * 0.5;
+                  const length = Math.random() * 15 + 10; // Разная длина капель
+                  const angle = Math.PI / 12; // Небольшой наклон для реалистичности
+                  return (
+                    <Line 
+                      key={i}
+                      x1={x} 
+                      y1={y} 
+                      x2={x - Math.sin(angle) * length} 
+                      y2={y + Math.cos(angle) * length} 
+                      stroke={currentTheme === 'dark' ? "rgba(200, 230, 255, 0.5)" : "rgba(120, 180, 255, 0.7)"} 
+                      strokeWidth={1.5} 
+                      strokeLinecap="round"
+                    />
+                  );
+                })}
               </Svg>
             </Animated.View>
           </>
@@ -349,46 +429,47 @@ export const WeatherBackground: React.FC<WeatherBackgroundProps> = ({
       case 'snowy':
         return (
           <>
-            {/* Облака */}
+            {/* Улучшенные облака */}
             <Animated.View style={cloud1Style}>
               <Svg width={width * 1.5} height={height} style={[StyleSheet.absoluteFill, { opacity }]}>
                 <Path 
-                  d="M100,100 Q150,70 200,100 Q250,70 300,100 Q350,70 400,100 Q450,70 500,100 L500,150 Q450,180 400,150 Q350,180 300,150 Q250,180 200,150 Q150,180 100,150 Z" 
-                  fill={currentTheme === 'dark' ? "rgba(200, 200, 210, 0.25)" : "rgba(230, 230, 240, 0.8)"} 
+                  d="M50,100 Q100,60 150,80 Q200,50 250,80 Q300,60 350,80 Q400,50 450,80 Q500,60 550,100 L550,150 Q500,180 450,160 Q400,190 350,160 Q300,190 250,160 Q200,190 150,160 Q100,180 50,150 Z" 
+                  fill={currentTheme === 'dark' ? "rgba(200, 200, 210, 0.3)" : "rgba(230, 230, 240, 0.9)"} 
                 />
               </Svg>
             </Animated.View>
             
-            {/* Снег */}
+            {/* Улучшенный снег - более красивые снежинки */}
             <Animated.View style={snowStyle}>
               <Svg width={width} height={height} style={[StyleSheet.absoluteFill, { opacity }]}>
-                {Array.from({ length: 30 }).map((_, i) => (
-                  <G key={i}>
-                    <Circle 
-                      cx={Math.random() * width} 
-                      cy={Math.random() * height * 0.5} 
-                      r={2} 
-                      fill={currentTheme === 'dark' ? "rgba(220, 240, 255, 0.6)" : "rgba(255, 255, 255, 0.9)"} 
-                    />
-                    {/* Простая снежинка */}
-                    <Line 
-                      x1={Math.random() * width - 4} 
-                      y1={Math.random() * height * 0.5} 
-                      x2={Math.random() * width + 4} 
-                      y2={Math.random() * height * 0.5} 
-                      stroke={currentTheme === 'dark' ? "rgba(220, 240, 255, 0.5)" : "rgba(255, 255, 255, 0.8)"} 
-                      strokeWidth={1} 
-                    />
-                    <Line 
-                      x1={Math.random() * width} 
-                      y1={Math.random() * height * 0.5 - 4} 
-                      x2={Math.random() * width} 
-                      y2={Math.random() * height * 0.5 + 4} 
-                      stroke={currentTheme === 'dark' ? "rgba(220, 240, 255, 0.5)" : "rgba(255, 255, 255, 0.8)"} 
-                      strokeWidth={1} 
-                    />
-                  </G>
-                ))}
+                {Array.from({ length: 40 }).map((_, i) => {
+                  const x = Math.random() * width;
+                  const y = Math.random() * height * 0.5;
+                  const size = Math.random() * 3 + 2;
+                  return (
+                    <G key={i}>
+                      {/* Центр снежинки */}
+                      <Circle 
+                        cx={x} 
+                        cy={y} 
+                        r={size} 
+                        fill={currentTheme === 'dark' ? "rgba(220, 240, 255, 0.7)" : "rgba(255, 255, 255, 0.9)"} 
+                      />
+                      {/* Лучи снежинки */}
+                      {Array.from({ length: 6 }).map((_, j) => (
+                        <Line 
+                          key={j}
+                          x1={x} 
+                          y1={y} 
+                          x2={x + Math.cos(j * Math.PI / 3) * size * 2} 
+                          y2={y + Math.sin(j * Math.PI / 3) * size * 2} 
+                          stroke={currentTheme === 'dark' ? "rgba(220, 240, 255, 0.7)" : "rgba(255, 255, 255, 0.9)"} 
+                          strokeWidth={1} 
+                        />
+                      ))}
+                    </G>
+                  );
+                })}
               </Svg>
             </Animated.View>
           </>
@@ -397,48 +478,70 @@ export const WeatherBackground: React.FC<WeatherBackgroundProps> = ({
       case 'stormy':
         return (
           <>
-            {/* Темные облака */}
+            {/* Улучшенные темные облака */}
             <Animated.View style={cloud1Style}>
               <Svg width={width * 1.5} height={height} style={[StyleSheet.absoluteFill, { opacity }]}>
                 <Path 
-                  d="M100,100 Q150,70 200,100 Q250,70 300,100 Q350,70 400,100 Q450,70 500,100 L500,150 Q450,180 400,150 Q350,180 300,150 Q250,180 200,150 Q150,180 100,150 Z" 
-                  fill={currentTheme === 'dark' ? "rgba(90, 90, 110, 0.35)" : "rgba(120, 120, 140, 0.8)"} 
+                  d="M50,100 Q100,60 150,80 Q200,50 250,80 Q300,60 350,80 Q400,50 450,80 Q500,60 550,100 L550,150 Q500,180 450,160 Q400,190 350,160 Q300,190 250,160 Q200,190 150,160 Q100,180 50,150 Z" 
+                  fill={currentTheme === 'dark' ? "rgba(90, 90, 110, 0.4)" : "rgba(120, 120, 140, 0.9)"} 
                 />
               </Svg>
             </Animated.View>
             
-            {/* Молния */}
+            {/* Улучшенная молния */}
             <Animated.View style={lightningStyle}>
               <Svg width={width} height={height} style={[StyleSheet.absoluteFill, { opacity }]}>
+                {/* Первая молния */}
                 <Path 
-                  d="M150,100 L120,200 L180,210 L140,300" 
+                  d="M150,100 L130,180 L160,190 L140,280 L170,290 L130,380" 
                   stroke={currentTheme === 'dark' ? "rgba(255, 255, 200, 0.9)" : "rgba(255, 255, 0, 0.9)"} 
                   strokeWidth={3} 
                   fill="none" 
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
+                {/* Вторая молния */}
                 <Path 
-                  d="M250,150 L220,250 L280,260 L240,350" 
+                  d="M250,120 L230,200 L260,210 L240,300 L270,310 L230,400" 
                   stroke={currentTheme === 'dark' ? "rgba(255, 255, 200, 0.9)" : "rgba(255, 255, 0, 0.9)"} 
                   strokeWidth={3} 
                   fill="none" 
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                {/* Свечение вокруг молнии */}
+                <Path 
+                  d="M150,100 L130,180 L160,190 L140,280 L170,290 L130,380" 
+                  stroke={currentTheme === 'dark' ? "rgba(255, 255, 200, 0.5)" : "rgba(255, 255, 0, 0.5)"} 
+                  strokeWidth={8} 
+                  fill="none" 
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </Svg>
             </Animated.View>
             
-            {/* Дождь */}
+            {/* Улучшенный дождь - более интенсивный */}
             <Animated.View style={rainStyle}>
               <Svg width={width} height={height} style={[StyleSheet.absoluteFill, { opacity }]}>
-                {Array.from({ length: 30 }).map((_, i) => (
-                  <Line 
-                    key={i}
-                    x1={Math.random() * width} 
-                    y1={Math.random() * height * 0.5} 
-                    x2={Math.random() * width - 5} // Наклонные капли для эффекта сильного дождя
-                    y2={Math.random() * height * 0.5 + 30} 
-                    stroke={currentTheme === 'dark' ? "rgba(180, 210, 255, 0.5)" : "rgba(100, 160, 255, 0.7)"} 
-                    strokeWidth={2} 
-                  />
-                ))}
+                {Array.from({ length: 70 }).map((_, i) => {
+                  const x = Math.random() * width;
+                  const y = Math.random() * height * 0.5;
+                  const length = Math.random() * 20 + 15; // Более длинные капли для шторма
+                  const angle = Math.PI / 8; // Больший наклон для эффекта сильного ветра
+                  return (
+                    <Line 
+                      key={i}
+                      x1={x} 
+                      y1={y} 
+                      x2={x - Math.sin(angle) * length} 
+                      y2={y + Math.cos(angle) * length} 
+                      stroke={currentTheme === 'dark' ? "rgba(180, 210, 255, 0.6)" : "rgba(100, 160, 255, 0.8)"} 
+                      strokeWidth={2} 
+                      strokeLinecap="round"
+                    />
+                  );
+                })}
               </Svg>
             </Animated.View>
           </>

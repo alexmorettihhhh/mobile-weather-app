@@ -216,14 +216,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     backfaceVisibility: 'hidden',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
     justifyContent: 'space-between',
   },
   cardBack: {
