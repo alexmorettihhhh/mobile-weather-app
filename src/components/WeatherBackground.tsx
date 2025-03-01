@@ -72,22 +72,18 @@ export const WeatherBackground: React.FC<WeatherBackgroundProps> = ({
   const starPosition = useSharedValue(0);
   
   const createStarFallAnimation = () => {
-    // Создаем анимацию падения звезд
     const starFallAnimation = withRepeat(
       withTiming(-height, { duration: 5000, easing: Easing.linear }),
       -1,
       false
     );
 
-    // Применяем анимацию к каждой звезде
     starPosition.value = starFallAnimation;
   };
   
-  // Запускаем анимацию при изменении типа погоды
   useEffect(() => {
     console.log('[WeatherBackground] Starting animations for weather type:', weatherType, 'isDay:', isDay);
     
-    // Сбрасываем все анимации при каждом рендере
     cloudPosition1.value = 0;
     cloudPosition2.value = width * 0.5;
     cloudOpacity.value = 0.8;
