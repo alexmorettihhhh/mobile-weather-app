@@ -29,6 +29,7 @@ import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { darkTheme, lightTheme } from '../styles/theme';
 import { weatherService } from '../services/weatherApi';
+import { WeatherHistoryService } from '../services/weatherHistoryService';
 
 interface CitySearchProps {
   onCitySelect: (city: string) => void;
@@ -49,6 +50,7 @@ export const CitySearch: React.FC<CitySearchProps> = ({ onCitySelect }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
 
   // Анимационные значения
   const searchBarWidth = useSharedValue(0);
@@ -112,6 +114,9 @@ export const CitySearch: React.FC<CitySearchProps> = ({ onCitySelect }) => {
       if (Array.isArray(cities) && cities.length > 0) {
         console.log(`[CitySearch] Список городов:`, cities);
         setSearchResults(cities);
+        await WeatherHistoryService.recordSearchCity(query);
+        const history = await WeatherHistoryService.getSearchHistory();
+        setSearchHistory(history);
       } else {
         console.log('[CitySearch] Города не найдены');
         setSearchResults([]);
@@ -306,6 +311,12 @@ export const CitySearch: React.FC<CitySearchProps> = ({ onCitySelect }) => {
           </View>
         </Animated.View>
       )}
+
+      {searchHistory.map((city) => (
+        <TouchableOpacity key={city} onPress={() => handleCitySelect(city)}>
+          <Text>{city}</Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 };

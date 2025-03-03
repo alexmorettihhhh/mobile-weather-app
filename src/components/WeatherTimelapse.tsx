@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Dimensions,
   ScrollView,
+  FlatList,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -38,7 +39,7 @@ export const WeatherTimelapse: React.FC<WeatherTimelapseProps> = ({ weatherData 
   const { translations } = useLanguage();
   const theme = currentTheme === 'dark' ? darkTheme : lightTheme;
   
-  const dailyData = weatherData.forecast.forecastday;
+  const forecastDays = weatherData.forecast.forecastday;
   const scrollViewRef = useRef<ScrollView>(null);
   
   // Получение иконки погоды по коду
@@ -135,48 +136,42 @@ export const WeatherTimelapse: React.FC<WeatherTimelapseProps> = ({ weatherData 
       </View>
       
       <View style={styles.daysContainer}>
-        {dailyData.map((day, index) => (
-          <View 
-            key={`day-${index}`} 
-            style={styles.dayItem}
-          >
-            <Text style={[styles.dayDate, { color: theme.colors.textSecondary }]}>
-              {index === 0 ? 'Сегодня' : formatDate(day.date)}
-            </Text>
-            <LinearGradient
-              colors={getDayGradient(day) as [string, string]}
-              style={[
-                styles.dayCard,
-                index === 0 && { borderColor: theme.colors.primary, borderWidth: 1.5 }
-              ]}
-            >
-              <Icon
-                name={getWeatherIcon(day.day.condition.code)}
-                size={28}
-                color="#FFFFFF"
-                style={styles.weatherIcon}
-              />
-              <View style={styles.tempContainer}>
-                <Text style={styles.maxTempText}>{Math.round(day.day.maxtemp_c)}°</Text>
-                <Text style={styles.minTempText}>{Math.round(day.day.mintemp_c)}°</Text>
-              </View>
-              <Text style={styles.conditionText}>{day.day.condition.text}</Text>
-            </LinearGradient>
-            <Text 
-              style={[
-                styles.precipText, 
-                { color: day.day.daily_chance_of_rain > 30 ? theme.colors.info : theme.colors.textSecondary }
-              ]}
-            >
-              {day.day.daily_chance_of_rain}%
-            </Text>
-          </View>
-        ))}
+        <FlatList
+          data={weatherData.forecast.forecastday}
+          horizontal
+          renderItem={({ item: day, index }) => (
+            <View style={[styles.dayItem, { marginRight: 10 }]}>
+              <Text style={styles.dayDate}>{index === 0 ? translations.today : formatDate(day.date)}</Text>
+              <LinearGradient
+                colors={getDayGradient(day) as [string, string]}
+                style={[styles.dayCard, index === 0 && { borderColor: theme.colors.primary, borderWidth: 1.5 }]}
+              >
+                <Icon
+                  name={getWeatherIcon(day.day.condition.code)}
+                  size={28}
+                  color="#FFFFFF"
+                  style={styles.weatherIcon}
+                />
+                <View style={styles.tempContainer}>
+                  <Text style={styles.maxTempText}>{Math.floor(day.day.maxtemp_c)}°</Text>
+                  <Text style={styles.minTempText}>{Math.floor(day.day.mintemp_c)}°</Text>
+                </View>
+                <Text style={styles.conditionText}>
+                  {day.day.condition.code === 1003 ? translations.partlyCloudy : 
+                   day.day.condition.code === 1063 ? translations.patchyRainNearby : 
+                   day.day.condition.text}
+                </Text>
+              </LinearGradient>
+              <Text style={[styles.precipText, { color: day.day.daily_chance_of_rain > 30 ? theme.colors.info : theme.colors.textSecondary }]}>{day.day.daily_chance_of_rain}%</Text>
+            </View>
+          )}
+          keyExtractor={(item) => item.date}
+        />
       </View>
       
       <View style={styles.footer}>
         <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>
-          {dailyData.length > 3 ? 'Проведите для просмотра всех дней' : ' '}
+          {forecastDays.length > 3 ? 'Проведите для просмотра всех дней' : ' '}
         </Text>
       </View>
     </Animated.View>

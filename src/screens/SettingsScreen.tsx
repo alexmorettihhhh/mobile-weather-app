@@ -173,54 +173,27 @@ export const SettingsScreen: React.FC = () => {
       onRequestClose={() => setUnitsModalVisible(false)}
     >
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: theme.colors.surface }]}>
-          <Text style={[styles.modalTitle, { color: theme.colors.textPrimary }]}>
-            {'units' in translations.settings ? translations.settings.units as string : 'Units'}
-          </Text>
-          
+        <View style={[styles.modalContent, { backgroundColor: theme.colors.surface }]}>  
+          <Text style={[styles.modalTitle, { color: theme.colors.textPrimary }]}>Выберите систему единиц</Text>
           <TouchableOpacity
-            style={[
-              styles.modalItem,
-              unitSystem === 'metric' && { backgroundColor: theme.colors.primaryLight }
-            ]}
+            style={[styles.modalItem, unitSystem === 'metric' && { backgroundColor: theme.colors.primaryLight }]}
             onPress={() => {
-              console.log('Switching to metric units');
               setUnitSystem('metric');
               setUnitsModalVisible(false);
             }}
           >
-            <Text style={{ color: theme.colors.textPrimary }}>
-              {'metric' in translations.settings ? translations.settings.metric as string : 'Metric'} (°C, km/h)
-            </Text>
-            {unitSystem === 'metric' && (
-              <Icon name="check" size={20} color={theme.colors.primary} />
-            )}
+            <Text style={{ color: theme.colors.textPrimary }}>Метрическая</Text>
+            {unitSystem === 'metric' && <Icon name="check" size={20} color={theme.colors.primary} />}
           </TouchableOpacity>
-          
           <TouchableOpacity
-            style={[
-              styles.modalItem,
-              unitSystem === 'imperial' && { backgroundColor: theme.colors.primaryLight }
-            ]}
+            style={[styles.modalItem, unitSystem === 'imperial' && { backgroundColor: theme.colors.primaryLight }]}
             onPress={() => {
-              console.log('Switching to imperial units');
               setUnitSystem('imperial');
               setUnitsModalVisible(false);
             }}
           >
-            <Text style={{ color: theme.colors.textPrimary }}>
-              {'imperial' in translations.settings ? translations.settings.imperial as string : 'Imperial'} (°F, mph)
-            </Text>
-            {unitSystem === 'imperial' && (
-              <Icon name="check" size={20} color={theme.colors.primary} />
-            )}
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[styles.modalButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => setUnitsModalVisible(false)}
-          >
-            <Text style={{ color: '#fff' }}>{translations.common.cancel}</Text>
+            <Text style={{ color: theme.colors.textPrimary }}>Имперская</Text>
+            {unitSystem === 'imperial' && <Icon name="check" size={20} color={theme.colors.primary} />}
           </TouchableOpacity>
         </View>
       </View>

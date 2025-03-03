@@ -7,7 +7,15 @@ import { es } from '../localization/es';
 import { de } from '../localization/de';
 
 type Language = 'en' | 'ru' | 'es' | 'de';
-type Translations = typeof en | typeof ru | typeof es | typeof de;
+type Translations = {
+  common: typeof en.common;
+  weather: typeof ru.weather;
+  settings: typeof en.settings;
+  errors: typeof en.errors;
+  today: string;
+  partlyCloudy: string;
+  patchyRainNearby: string;
+};
 
 interface LanguageContextType {
   language: Language;

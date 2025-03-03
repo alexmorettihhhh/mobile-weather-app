@@ -5,8 +5,11 @@ import { generateUniqueId } from '../utils/idGenerator';
 
 const HISTORY_STORAGE_KEY = 'weather_history';
 const HISTORY_LIMIT = 30;
+const SEARCH_HISTORY_STORAGE_KEY = 'search_history';
 
 export class WeatherHistoryService {
+  private static searchHistory: string[] = [];
+
   /**
    * Записать данные о погоде в историю
    */
@@ -116,5 +119,18 @@ export class WeatherHistoryService {
     } catch (error) {
       console.error('Error clearing all weather history:', error);
     }
+  }
+
+  static async recordSearchCity(city: string): Promise<void> {
+    if (!this.searchHistory.includes(city)) {
+      this.searchHistory.push(city);
+      if (this.searchHistory.length > 5) {
+        this.searchHistory.shift(); // Удаляем самый старый город
+      }
+    }
+  }
+
+  static async getSearchHistory(): Promise<string[]> {
+    return this.searchHistory;
   }
 } 

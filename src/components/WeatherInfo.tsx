@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Animated, { 
   FadeIn, 
@@ -140,6 +140,17 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
   const windSpeed = unitSystem === 'metric' ? weatherData.current.wind_kph : weatherData.current.wind_mph;
   const pressure = unitSystem === 'metric' ? weatherData.current.pressure_mb : weatherData.current.pressure_in;
 
+  const [isMetric, setIsMetric] = useState(true); // true для метрической, false для имперской
+
+  const toggleUnits = () => {
+    setIsMetric(!isMetric);
+  };
+
+  // Используйте isMetric для отображения температуры
+  const displayTemperature = (tempC: number, tempF: number) => {
+    return isMetric ? `${tempC}°C` : `${tempF}°F`;
+  };
+
   return (
     <Animated.View 
       entering={FadeIn.duration(500)}
@@ -176,7 +187,7 @@ export const WeatherInfo: React.FC<WeatherInfoProps> = ({ weatherData, city }) =
             <Animated.Text 
               style={[styles.temperature, temperatureAnimatedStyle]}
             >
-              {Math.round(temp)}{units.temperature.charAt(0)}
+              {isMetric ? Math.floor(temp) : Math.floor(temp)}°
             </Animated.Text>
             <Animated.Text 
               entering={FadeIn.delay(300).duration(300)}

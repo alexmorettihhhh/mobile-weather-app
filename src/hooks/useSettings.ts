@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from 'react-native';
+import { Alert } from 'react-native';
 
 type Theme = 'light' | 'dark';
-type Language = 'ru' | 'en';
+type Language = 'ru' | 'en' | 'es' | 'de';
 
 interface Settings {
   theme: Theme;
@@ -40,7 +41,8 @@ export const useSettings = () => {
         setSettings(JSON.parse(savedSettings));
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
+      console.error('Ошибка при загрузке настроек:', error);
+      Alert.alert('Ошибка', 'Не удалось загрузить настройки.');
     }
   };
 
@@ -49,7 +51,8 @@ export const useSettings = () => {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newSettings));
       setSettings(newSettings);
     } catch (error) {
-      console.error('Error saving settings:', error);
+      console.error('Ошибка при сохранении настроек:', error);
+      Alert.alert('Ошибка', 'Не удалось сохранить настройки.');
     }
   };
 
